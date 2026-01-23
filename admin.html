@@ -56,12 +56,13 @@
 </div>
 
 <script>
-    const PASSWORD_ADMIN = "pizza123"; // CAMBIA PASSWORD SE VUOI
+    const PASSWORD_ADMIN = "pizza123"; // <--- CAMBIA LA TUA PASSWORD QUI
 
-    // -----------------------------------------------------------
-    // ⚠️ INCOLLA QUI SOTTO LA TUA CONFIGURAZIONE FIREBASE
-    // -----------------------------------------------------------
-    const firebaseConfig = {
+    // ***********************************************************
+    // INCOLLA QUI SOTTO LA TUA CONFIGURAZIONE FIREBASE
+    // Assicurati di non cancellare le parentesi graffe { }
+    // ***********************************************************
+   const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
         authDomain: "melastregatauni.firebaseapp.com",
         // Nota: questo URL è importante perché il tuo database è in Europa
@@ -71,7 +72,7 @@
         messagingSenderId: "438544443213",
         appId: "1:438544443213:web:f30f121f0642b8e8a9b904"
     };
-    // -----------------------------------------------------------
+    // ***********************************************************
 
     let db;
 
@@ -115,7 +116,7 @@
         // 2. Scarica Ordini in tempo reale
         db.ref('ordini').on('value', (snapshot) => {
             const data = snapshot.val();
-            document.getElementById('status-db').innerText = "Stato: Dati ricevuti.";
+            document.getElementById('status-db').innerText = "Stato: Dati ricevuti e aggiornati.";
             renderOrdini(data);
         });
     }
@@ -132,7 +133,6 @@
 
         let gruppiTavoli = {};
 
-        // Trasformiamo i dati in array
         Object.values(data).forEach(ordine => {
             // Se l'ordine è incompleto, lo saltiamo
             if (!ordine.items && !ordine.piatti) return; 
