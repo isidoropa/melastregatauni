@@ -23,21 +23,16 @@
     
     <div style="background:#f8f9fa; padding:15px; border-radius:8px; border:1px solid #ddd;">
         <h2 style="margin-top:0;">1. Imposta Menu del Giorno</h2>
-        
         <div class="menu-grid">
             <h3>🍝 Primi Piatti</h3>
             <textarea id="menu-primi" rows="3"></textarea>
-            
             <h3>🍖 Secondi</h3>
             <textarea id="menu-secondi" rows="3"></textarea>
-            
             <h3>🥗 Contorni</h3>
             <textarea id="menu-contorni" rows="3"></textarea>
-            
             <h3>🍕 Pizze (Info testo)</h3>
             <textarea id="menu-pizze" rows="3"></textarea>
         </div>
-
         <button onclick="salvaMenu()" style="margin-top:15px;">PUBBLICA MENU</button>
     </div>
 
@@ -56,13 +51,10 @@
 </div>
 
 <script>
-    const PASSWORD_ADMIN = "pizza123"; // <--- CAMBIA LA TUA PASSWORD QUI
+    const PASSWORD_ADMIN = "pizza123"; // CAMBIA PASSWORD
 
-    // ***********************************************************
-    // INCOLLA QUI SOTTO LA TUA CONFIGURAZIONE FIREBASE
-    // Assicurati di non cancellare le parentesi graffe { }
-    // ***********************************************************
-   const firebaseConfig = {
+    // --- CONFIGURAZIONE FIREBASE ---
+    const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
         authDomain: "melastregatauni.firebaseapp.com",
         // Nota: questo URL è importante perché il tuo database è in Europa
@@ -71,38 +63,28 @@
         storageBucket: "melastregatauni.firebasestorage.app",
         messagingSenderId: "438544443213",
         appId: "1:438544443213:web:f30f121f0642b8e8a9b904"
-    };
-    // ***********************************************************
+    };------------------------------
 
     let db;
 
     function checkLogin() {
-        const pass = document.getElementById('admin-pass').value;
-        if(pass === PASSWORD_ADMIN) {
+        if(document.getElementById('admin-pass').value === PASSWORD_ADMIN) {
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('admin-content').style.display = 'block';
             avviaFirebase();
-        } else {
-            alert("Password errata");
-        }
+        } else { alert("Password errata"); }
     }
 
     function avviaFirebase() {
         if (!firebase.apps.length) {
-            try {
-                firebase.initializeApp(firebaseConfig);
-                db = firebase.database();
-                document.getElementById('status-db').innerText = "Stato: Connesso. In attesa dati...";
-                caricaDati();
-            } catch (e) {
-                alert("Errore Configurazione Firebase: " + e.message);
-                console.error(e);
-            }
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            document.getElementById('status-db').innerText = "Stato: Connesso.";
+            caricaDati();
         }
     }
 
     function caricaDati() {
-        // 1. Carica Menu
         db.ref('menu').once('value', (s) => {
             const m = s.val();
             if(m && typeof m === 'object') {
@@ -113,11 +95,8 @@
             }
         });
 
-        // 2. Scarica Ordini in tempo reale
         db.ref('ordini').on('value', (snapshot) => {
-            const data = snapshot.val();
-            document.getElementById('status-db').innerText = "Stato: Dati ricevuti e aggiornati.";
-            renderOrdini(data);
+            renderOrdini(snapshot.val());
         });
     }
 
@@ -126,18 +105,13 @@
         const divTavoli = document.getElementById('lista-tavoli');
         divAsporto.innerHTML = ""; divTavoli.innerHTML = "";
 
-        if(!data) { 
-            divAsporto.innerHTML = "<p>Nessun ordine presente.</p>"; 
-            return; 
-        }
+        if(!data) { divAsporto.innerHTML = "<p>Nessun ordine presente.</p>"; return; }
 
         let gruppiTavoli = {};
 
         Object.values(data).forEach(ordine => {
-            // Se l'ordine è incompleto, lo saltiamo
             if (!ordine.items && !ordine.piatti) return; 
 
-            // Gestione compatibilità
             let piattiHTML = "";
             if(ordine.items) {
                 piattiHTML = ordine.items.map(i => `<span>• <strong>${i.qty}x</strong> ${i.nome}</span>`).join("<br>");
@@ -145,9 +119,13 @@
                 piattiHTML = ordine.piatti.join(", "); 
             }
 
+            // QUI ABBIAMO AGGIUNTO IL TELEFONO
+            const telefonoHTML = ordine.telefono ? `<br><small>📞 <a href="tel:${ordine.telefono}">${ordine.telefono}</a></small>` : "";
+
             const htmlCard = `
                 <div class="card" style="border-left: 5px solid ${ordine.tipo === 'asporto' ? '#28a745' : '#007bff'}">
-                    <strong>${ordine.cliente}</strong> (${ordine.orario})<br>
+                    <strong>${ordine.cliente}</strong> (${ordine.orario})
+                    ${telefonoHTML}
                     <div style="margin-top:5px; font-size:0.95em; color:#444;">${piattiHTML}</div>
                 </div>`;
 
@@ -155,14 +133,11 @@
                 divAsporto.innerHTML += htmlCard;
             } else {
                 const nomeTav = ordine.tavolo || "Sconosciuto";
-                if(!gruppiTavoli[nomeTav]) {
-                    gruppiTavoli[nomeTav] = [];
-                }
+                if(!gruppiTavoli[nomeTav]) gruppiTavoli[nomeTav] = [];
                 gruppiTavoli[nomeTav].push(htmlCard);
             }
         });
 
-        // Mostra Tavoli
         for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
             divTavoli.innerHTML += `
                 <div class="tavolo-group">
@@ -187,7 +162,6 @@
         if(confirm("Sei sicuro di voler cancellare TUTTI gli ordini?")) {
             db.ref('ordini').remove();
             alert("Database pulito.");
-            location.reload();
         }
     }
 </script>
