@@ -122,9 +122,12 @@
         let gruppiTavoli = {};
 
         Object.values(data).forEach(ordine => {
+            // Controllo di sicurezza: se per caso c'è un ordine vecchio formato, lo ignoriamo per non bloccare tutto
+            if (!ordine.items) return;
+
             // Formattiamo la lista piatti con le quantità
             let piattiHTML = ordine.items.map(i => 
-                `<span>• ${i.qty}x ${i.nome}</span>`
+                `<span>• <strong>${i.qty}x</strong> ${i.nome}</span>`
             ).join("<br>");
 
             const htmlCard = `
@@ -136,13 +139,24 @@
             if(ordine.tipo === 'asporto') {
                 divAsporto.innerHTML += htmlCard;
             } else {
-                if(!gruppiTavoli[ordine.tavolo]) groups[ordine.tavolo] = [];
-                // Logica semplice per raggruppamento
-                 const nomeTav = ordine.tavolo;
-                if(!gruppiTavoli[nomeTav]) gruppiTavoli[nomeTav] = [];
+                // QUI C'ERA L'ERRORE: ora è corretto
+                const nomeTav = ordine.tavolo;
+                if(!gruppiTavoli[nomeTav]) {
+                    gruppiTavoli[nomeTav] = [];
+                }
                 gruppiTavoli[nomeTav].push(htmlCard);
             }
         });
+
+        // Ora mostriamo i gruppi di tavoli a schermo
+        for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
+            divTavoli.innerHTML += `
+                <div class="tavolo-group">
+                    <div class="tavolo-title">TAVOLO: ${tavolo}</div>
+                    ${cards.join("")}
+                </div>`;
+        }
+    }
 
         // Render Tavoli
         for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
@@ -170,4 +184,5 @@
     }
 </script>
 </body>
+
 </html>
