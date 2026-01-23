@@ -1,4 +1,7 @@
-<!DOCTYPE html>
+
+
+
+    <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -13,19 +16,34 @@
 <div id="login-overlay">
     <div id="login-box">
         <h2>Area Riservata</h2>
-        <p>Inserisci la password per gestire il menu.</p>
         <input type="password" id="admin-pass" placeholder="Password...">
         <button onclick="checkLogin()">ENTRA</button>
     </div>
 </div>
 
 <div class="container" id="admin-content" style="display:none;">
-    <h1>Pannello Admin</h1>
+    <h1>Gestione Menu & Ordini</h1>
     
-    <div style="background:#eee; padding:10px; border-radius:5px;">
-        <h3>1. Imposta Menu del Giorno</h3>
-        <textarea id="input-menu" rows="5" placeholder="Scrivi qui i piatti, uno per riga..." style="width:100%;"></textarea>
-        <button onclick="salvaMenu()">PUBBLICA MENU</button>
+    <div style="background:#f8f9fa; padding:15px; border-radius:8px; border:1px solid #ddd;">
+        <h2 style="margin-top:0;">1. Imposta Menu del Giorno</h2>
+        <p>Scrivi i piatti uno per riga.</p>
+        
+        <div class="menu-grid">
+            <h3>🍝 Primi Piatti</h3>
+            <textarea id="menu-primi" rows="4" placeholder="Es: Pasta al pomodoro..."></textarea>
+            
+            <h3>🍖 Secondi</h3>
+            <textarea id="menu-secondi" rows="4" placeholder="Es: Cotoletta..."></textarea>
+            
+            <h3>🥗 Contorni</h3>
+            <textarea id="menu-contorni" rows="4" placeholder="Es: Insalata mista..."></textarea>
+            
+            <h3>🍕 Pizze (Lista disponibilità)</h3>
+            <small>Qui scrivi solo l'elenco delle pizze disponibili oggi (per info all'utente).</small>
+            <textarea id="menu-pizze" rows="4" placeholder="Es: Margherita, Diavola..."></textarea>
+        </div>
+
+        <button onclick="salvaMenu()" style="margin-top:15px;">PUBBLICA MENU COMPLETO</button>
     </div>
 
     <hr>
@@ -35,32 +53,17 @@
     <h3>🥡 ASPORTO</h3>
     <div id="lista-asporto"></div>
 
-    <h3>🍽️ TAVOLI (Raggruppati)</h3>
+    <h3>🍽️ TAVOLI</h3>
     <div id="lista-tavoli"></div>
 
-    <button class="delete-btn" onclick="cancellaTutto()">🗑️ CANCELLA TUTTI GLI ORDINI (FINE GIORNATA)</button>
+    <button class="delete-btn" onclick="cancellaTutto()">🗑️ RESET GIORNATA</button>
 </div>
 
 <script>
-    // --- IMPOSTA QUI LA TUA PASSWORD ---
-    const PASSWORD_ADMIN = "pizza123"; // <--- CAMBIA QUESTA PASSWORD!
-    // -----------------------------------
-
-    function checkLogin() {
-        const input = document.getElementById('admin-pass').value;
-        if(input === PASSWORD_ADMIN) {
-            // Se la password è giusta, nascondi il login e mostra il contenuto
-            document.getElementById('login-overlay').style.display = 'none';
-            document.getElementById('admin-content').style.display = 'block';
-            avviaFirebase(); // Carica i dati solo dopo il login
-        } else {
-            alert("Password sbagliata!");
-        }
-    }
+    const PASSWORD_ADMIN = "pizza123"; // CAMBIA PASSWORD
 
     // --- CONFIGURAZIONE FIREBASE ---
-    // INCOLLA QUI SOTTO LA TUA CONFIGURAZIONE (quella che hai preso prima)
-    // --- CONFIGURAZIONE FIREBASE ---
+    
     const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
         authDomain: "melastregatauni.firebaseapp.com",
@@ -72,88 +75,98 @@
         appId: "1:438544443213:web:f30f121f0642b8e8a9b904"
     };
     // -------------------------------
-    // -------------------------------
 
-    let db; // Variabile globale per il database
+    let db;
+
+    function checkLogin() {
+        if(document.getElementById('admin-pass').value === PASSWORD_ADMIN) {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('admin-content').style.display = 'block';
+            avviaFirebase();
+        } else { alert("Password errata"); }
+    }
 
     function avviaFirebase() {
-        // Inizializza Firebase solo se non è già stato fatto
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
             db = firebase.database();
-            
-            caricaDati(); // Avvia il download dei dati
+            caricaDati();
         }
     }
 
     function caricaDati() {
-        // 1. Carica il menu attuale
+        // 1. Carica il menu nelle caselle
         db.ref('menu').once('value', (s) => {
-            if(s.val()) document.getElementById('input-menu').value = s.val();
+            const m = s.val();
+            if(m && typeof m === 'object') {
+                document.getElementById('menu-primi').value = m.primi || "";
+                document.getElementById('menu-secondi').value = m.secondi || "";
+                document.getElementById('menu-contorni').value = m.contorni || "";
+                document.getElementById('menu-pizze').value = m.pizze || "";
+            }
         });
 
-        // 2. Scarica e organizza gli ordini in tempo reale
+        // 2. Scarica Ordini
         db.ref('ordini').on('value', (snapshot) => {
-            const divAsporto = document.getElementById('lista-asporto');
-            const divTavoli = document.getElementById('lista-tavoli');
-            
-            divAsporto.innerHTML = "";
-            divTavoli.innerHTML = "";
+            renderOrdini(snapshot.val());
+        });
+    }
 
-            const data = snapshot.val();
-            if(!data) {
-                divAsporto.innerHTML = "<p>Nessun ordine.</p>";
-                return;
-            }
+    function renderOrdini(data) {
+        const divAsporto = document.getElementById('lista-asporto');
+        const divTavoli = document.getElementById('lista-tavoli');
+        divAsporto.innerHTML = ""; divTavoli.innerHTML = "";
 
-            let gruppiTavoli = {};
+        if(!data) { divAsporto.innerHTML = "<p>Nessun ordine.</p>"; return; }
 
-            Object.keys(data).forEach(key => {
-                const ordine = data[key];
-                const htmlOrdine = `
-                    <div class="item-row">
-                        <div>
-                            <strong>${ordine.cliente}</strong> (${ordine.orario})<br>
-                            <em>${ordine.piatti.join(", ")}</em>
-                        </div>
-                    </div>`;
+        let gruppiTavoli = {};
 
-                if(ordine.tipo === 'asporto') {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.innerHTML = htmlOrdine;
-                    divAsporto.appendChild(card);
-                } else {
-                    const nomeTav = ordine.tavolo;
-                    if(!gruppiTavoli[nomeTav]) {
-                        gruppiTavoli[nomeTav] = [];
-                    }
-                    gruppiTavoli[nomeTav].push(htmlOrdine);
-                }
-            });
+        Object.values(data).forEach(ordine => {
+            // Formattiamo la lista piatti con le quantità
+            let piattiHTML = ordine.items.map(i => 
+                `<span>• ${i.qty}x ${i.nome}</span>`
+            ).join("<br>");
 
-            for (const [nomeTavolo, listaOrdiniHTML] of Object.entries(gruppiTavoli)) {
-                const boxTavolo = document.createElement('div');
-                boxTavolo.className = 'tavolo-group';
-                let htmlContenuto = `<div class="tavolo-title">TAVOLO: ${nomeTavolo} <span style="float:right; font-size:0.8em">persone: ${listaOrdiniHTML.length}</span></div>`;
-                listaOrdiniHTML.forEach(html => { htmlContenuto += html; });
-                boxTavolo.innerHTML = htmlContenuto;
-                divTavoli.appendChild(boxTavolo);
+            const htmlCard = `
+                <div class="card" style="border-left: 5px solid ${ordine.tipo === 'asporto' ? '#28a745' : '#007bff'}">
+                    <strong>${ordine.cliente}</strong> (${ordine.orario})<br>
+                    <div style="margin-top:5px; font-size:0.95em; color:#444;">${piattiHTML}</div>
+                </div>`;
+
+            if(ordine.tipo === 'asporto') {
+                divAsporto.innerHTML += htmlCard;
+            } else {
+                if(!gruppiTavoli[ordine.tavolo]) groups[ordine.tavolo] = [];
+                // Logica semplice per raggruppamento
+                 const nomeTav = ordine.tavolo;
+                if(!gruppiTavoli[nomeTav]) gruppiTavoli[nomeTav] = [];
+                gruppiTavoli[nomeTav].push(htmlCard);
             }
         });
+
+        // Render Tavoli
+        for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
+            divTavoli.innerHTML += `
+                <div class="tavolo-group">
+                    <div class="tavolo-title">TAVOLO: ${tavolo}</div>
+                    ${cards.join("")}
+                </div>`;
+        }
     }
 
     function salvaMenu() {
-        const testo = document.getElementById('input-menu').value;
-        db.ref('menu').set(testo);
-        alert("Menu aggiornato!");
+        const menuData = {
+            primi: document.getElementById('menu-primi').value,
+            secondi: document.getElementById('menu-secondi').value,
+            contorni: document.getElementById('menu-contorni').value,
+            pizze: document.getElementById('menu-pizze').value
+        };
+        db.ref('menu').set(menuData);
+        alert("Menu aggiornato e diviso in sezioni!");
     }
 
     function cancellaTutto() {
-        if(confirm("Sei sicuro? Questo cancellerà tutti gli ordini di oggi.")) {
-            db.ref('ordini').remove();
-            alert("Database pulito.");
-        }
+        if(confirm("Cancelli tutto?")) db.ref('ordini').remove();
     }
 </script>
 </body>

@@ -1,4 +1,7 @@
-<!DOCTYPE html>
+
+
+
+    <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -12,36 +15,64 @@
 
 <div class="container">
     <h1>Mensa Universitaria</h1>
-    <p style="text-align:center;">Seleziona i piatti e invia l'ordine.</p>
+    
+    <div id="menu-loading">Caricamento menu...</div>
 
-    <div id="menu-container">
-        <p>Caricamento menu...</p>
+    <div id="menu-completo" class="hidden">
+        
+        <div id="sec-primi" class="menu-section">
+            <h3>🍝 Primi Piatti</h3>
+            <div class="content"></div>
+        </div>
+
+        <div id="sec-secondi" class="menu-section">
+            <h3>🍖 Secondi Piatti</h3>
+            <div class="content"></div>
+        </div>
+
+        <div id="sec-contorni" class="menu-section">
+            <h3>🥗 Contorni</h3>
+            <div class="content"></div>
+        </div>
+
+        <div id="sec-pizze" class="menu-section" style="border-color: #ffc107;">
+            <h3 style="border-color: #ffc107; color: #d39e00;">🍕 Pizze</h3>
+            <p><strong>Pizze disponibili oggi:</strong></p>
+            <div id="lista-pizze-display" class="lista-pizze-admin"></div>
+            
+            <p>Scrivi quale pizza vuoi:</p>
+            <div id="custom-pizza-container">
+                <div class="pizza-input-group">
+                    <input type="text" class="pizza-name" placeholder="Es. Margherita con bufala...">
+                    <input type="number" class="pizza-qty qty-input" value="1" min="1">
+                </div>
+            </div>
+            <button class="add-btn" onclick="aggiungiRigaPizza()">+ Altra Pizza</button>
+        </div>
+
     </div>
 
     <hr>
     <h3>I tuoi dati</h3>
-    <input type="text" id="nome" placeholder="Il tuo Nome (es. Mario Rossi)" required>
+    <input type="text" id="nome" placeholder="Il tuo Nome" required>
     
     <label>Dove mangi?</label>
     <select id="tipo-ordine" onchange="toggleTavolo()">
-        <option value="asporto">Asporto (Porto via)</option>
-        <option value="tavolo">Al Tavolo (Mangio qui)</option>
+        <option value="asporto">Asporto</option>
+        <option value="tavolo">Al Tavolo</option>
     </select>
 
     <div id="div-tavolo" class="hidden">
-        <input type="text" id="nome-tavolo" placeholder="NOME DEL TAVOLO (es. RUSSO)">
-        <small>Mettetevi d'accordo sul nome del tavolo con i colleghi!</small>
+        <input type="text" id="nome-tavolo" placeholder="NOME TAVOLO">
     </div>
 
-    <label>Orario Ritiro/Pranzo</label>
+    <label>Orario</label>
     <input type="time" id="orario" value="13:00">
 
-    <button onclick="inviaOrdine()">INVIA ORDINE</button>
+    <button onclick="inviaOrdine()" style="margin-top:20px; font-size:1.2em;">INVIA ORDINE</button>
 </div>
 
 <script>
-    // --- CONFIGURAZIONE FIREBASE ---
-    // Sostituisci questo blocco con quello copiato da Firebase
     // --- CONFIGURAZIONE FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
@@ -54,81 +85,109 @@
         appId: "1:438544443213:web:f30f121f0642b8e8a9b904"
     };
     // -------------------------------
-    // -------------------------------
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. Carica il Menu all'avvio
+    // Carica il Menu e costruisce l'interfaccia
     db.ref('menu').on('value', (snapshot) => {
-        const div = document.getElementById('menu-container');
-        div.innerHTML = "";
-        const data = snapshot.val();
+        document.getElementById('menu-loading').style.display = 'none';
+        document.getElementById('menu-completo').classList.remove('hidden');
         
-        if(!data) {
-            div.innerHTML = "<p>Menu non ancora inserito.</p>";
+        const m = snapshot.val();
+        if(!m) return;
+
+        renderSection('sec-primi', m.primi);
+        renderSection('sec-secondi', m.secondi);
+        renderSection('sec-contorni', m.contorni);
+        
+        // Per le pizze mostriamo solo la lista testuale
+        const displayPizze = document.getElementById('lista-pizze-display');
+        displayPizze.innerHTML = m.pizze ? m.pizze.replace(/\n/g, "<br>") : "Nessuna pizza oggi.";
+    });
+
+    function renderSection(sectionId, textData) {
+        const container = document.querySelector(`#${sectionId} .content`);
+        container.innerHTML = "";
+        
+        if(!textData) {
+            container.innerHTML = "<em>Niente oggi.</em>";
             return;
         }
 
-        // Il menu è salvato come stringa lunga, lo dividiamo per righe
-        const piatti = data.split('\n');
-        piatti.forEach(piatto => {
+        const righe = textData.split('\n');
+        righe.forEach(piatto => {
             if(piatto.trim() !== "") {
-                div.innerHTML += `
-                    <div class="item-row">
-                        <span>${piatto}</span>
-                        <input type="checkbox" class="scelta-piatto" value="${piatto}" style="width:20px;">
-                    </div>
+                // Creiamo una riga con Nome Piatto e Input Numero
+                const div = document.createElement('div');
+                div.className = 'piatto-row';
+                div.innerHTML = `
+                    <span>${piatto}</span>
+                    <input type="number" class="qty-piatto" data-nome="${piatto}" value="0" min="0">
                 `;
+                container.appendChild(div);
             }
         });
-    });
-
-    // 2. Gestisce la visibilità del campo "Nome Tavolo"
-    function toggleTavolo() {
-        const tipo = document.getElementById('tipo-ordine').value;
-        const div = document.getElementById('div-tavolo');
-        if(tipo === 'tavolo') div.classList.remove('hidden');
-        else div.classList.add('hidden');
     }
 
-    // 3. Invia Ordine
+    function aggiungiRigaPizza() {
+        const div = document.createElement('div');
+        div.className = 'pizza-input-group';
+        div.innerHTML = `
+            <input type="text" class="pizza-name" placeholder="Altra pizza...">
+            <input type="number" class="pizza-qty qty-input" value="1" min="1">
+        `;
+        document.getElementById('custom-pizza-container').appendChild(div);
+    }
+
+    function toggleTavolo() {
+        const val = document.getElementById('tipo-ordine').value;
+        document.getElementById('div-tavolo').style.display = (val === 'tavolo') ? 'block' : 'none';
+    }
+
     function inviaOrdine() {
         const nome = document.getElementById('nome').value;
         const tipo = document.getElementById('tipo-ordine').value;
         const tavolo = document.getElementById('nome-tavolo').value;
         const orario = document.getElementById('orario').value;
-        
-        // Raccogli i piatti selezionati
-        const checkboxes = document.querySelectorAll('.scelta-piatto:checked');
-        let piattiScelti = [];
-        checkboxes.forEach((box) => piattiScelti.push(box.value));
 
-        if(nome === "" || piattiScelti.length === 0) {
-            alert("Inserisci il nome e seleziona almeno un piatto!");
-            return;
-        }
-        if(tipo === 'tavolo' && tavolo === "") {
-            alert("Se mangi al tavolo, devi specificare il Nome del Tavolo!");
-            return;
-        }
+        if(!nome) { alert("Inserisci il nome!"); return; }
+        if(tipo === 'tavolo' && !tavolo) { alert("Inserisci il tavolo!"); return; }
+
+        let carrello = [];
+
+        // 1. Raccogli Primi, Secondi, Contorni
+        document.querySelectorAll('.qty-piatto').forEach(input => {
+            const q = parseInt(input.value);
+            if(q > 0) {
+                carrello.push({ nome: input.dataset.nome, qty: q });
+            }
+        });
+
+        // 2. Raccogli Pizze (Testo libero)
+        document.querySelectorAll('.pizza-input-group').forEach(group => {
+            const nomePizza = group.querySelector('.pizza-name').value;
+            const qPizza = parseInt(group.querySelector('.pizza-qty').value);
+            if(nomePizza.trim() !== "" && qPizza > 0) {
+                carrello.push({ nome: "PIZZA: " + nomePizza, qty: qPizza });
+            }
+        });
+
+        if(carrello.length === 0) { alert("Seleziona almeno un piatto o una pizza!"); return; }
 
         const ordine = {
             cliente: nome,
-            piatti: piattiScelti,
+            items: carrello, // Ora salviamo un array di oggetti {nome, qty}
             tipo: tipo,
-            tavolo: (tipo === 'tavolo') ? tavolo.toUpperCase() : "N/A", // Convertiamo in maiuscolo per raggruppare meglio
+            tavolo: (tipo === 'tavolo') ? tavolo.toUpperCase() : "N/A",
             orario: orario,
             timestamp: Date.now()
         };
 
         db.ref('ordini').push(ordine)
             .then(() => {
-                alert("Ordine inviato con successo!");
-                location.reload(); // Ricarica la pagina per pulire
-            })
-            .catch((error) => {
-                alert("Errore: " + error.message);
+                alert("Ordine Inviato!");
+                location.reload();
             });
     }
 </script>

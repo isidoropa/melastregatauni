@@ -35,5 +35,54 @@ button:hover { background-color: #218838; }
     max-width: 350px;
 }
 
+
+/* ...Tieni pure il CSS di base che avevi... */
+
+/* NUOVI STILI PER IL MENU AVANZATO */
+.menu-section {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+.menu-section h3 {
+    margin-top: 0;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 5px;
+    color: #007bff;
+}
+.piatto-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px dashed #eee;
+}
+.qty-input {
+    width: 60px;
+    text-align: center;
+    margin-left: 10px;
+    padding: 5px;
+}
+.pizza-input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.pizza-name {
+    flex-grow: 1;
+}
+.add-btn {
+    background-color: #17a2b8;
+    font-size: 0.9em;
+    margin-top: 10px;
+}
+.lista-pizze-admin {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 15px;
+    font-style: italic;
+}
 #login-box h2 { margin-top: 0; color: #333; }
 #login-box input { text-align: center; font-size: 18px; margin-bottom: 15px; }
