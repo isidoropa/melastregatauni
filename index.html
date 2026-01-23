@@ -1,7 +1,4 @@
-
-
-
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -15,6 +12,10 @@
 
 <div class="container">
     <h1>Mensa Universitaria</h1>
+    <div id="avviso-orari" style="background:#fff3cd; color:#856404; padding:10px; font-size:0.9em; border-radius:5px; margin-bottom:15px; text-align:center;">
+        🕒 <strong>Orari di ordinazione:</strong> 09:00 - 12:15<br>
+        🍽️ <strong>Orari pranzo/ritiro:</strong> 12:00 - 14:15
+    </div>
     
     <div id="menu-loading">Caricamento menu...</div>
 
@@ -43,7 +44,7 @@
             <p>Scrivi quale pizza vuoi:</p>
             <div id="custom-pizza-container">
                 <div class="pizza-input-group">
-                    <input type="text" class="pizza-name" placeholder="Es. Margherita con bufala...">
+                    <input type="text" class="pizza-name" placeholder="Es. Margherita...">
                     <input type="number" class="pizza-qty qty-input" value="1" min="1">
                 </div>
             </div>
@@ -54,20 +55,22 @@
 
     <hr>
     <h3>I tuoi dati</h3>
-    <input type="text" id="nome" placeholder="Il tuo Nome" required>
+    
+    <input type="text" id="nome" placeholder="Il tuo Nome e Cognome" required>
+    <input type="tel" id="telefono" placeholder="Numero di Telefono (Obbligatorio)" required>
     
     <label>Dove mangi?</label>
     <select id="tipo-ordine" onchange="toggleTavolo()">
-        <option value="asporto">Asporto</option>
-        <option value="tavolo">Al Tavolo</option>
+        <option value="asporto">Asporto (Porto via)</option>
+        <option value="tavolo">Al Tavolo (Mangio qui)</option>
     </select>
 
     <div id="div-tavolo" class="hidden">
-        <input type="text" id="nome-tavolo" placeholder="NOME TAVOLO">
+        <input type="text" id="nome-tavolo" placeholder="NOME TAVOLO (es. RUSSO)">
     </div>
 
-    <label>Orario</label>
-    <input type="time" id="orario" value="13:00">
+    <label>Orario Ritiro/Pranzo (tra le 12:00 e le 14:15)</label>
+    <input type="time" id="orario" value="13:00" min="12:00" max="14:15">
 
     <button onclick="inviaOrdine()" style="margin-top:20px; font-size:1.2em;">INVIA ORDINE</button>
 </div>
@@ -89,19 +92,14 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Carica il Menu e costruisce l'interfaccia
     db.ref('menu').on('value', (snapshot) => {
         document.getElementById('menu-loading').style.display = 'none';
         document.getElementById('menu-completo').classList.remove('hidden');
-        
         const m = snapshot.val();
         if(!m) return;
-
         renderSection('sec-primi', m.primi);
         renderSection('sec-secondi', m.secondi);
         renderSection('sec-contorni', m.contorni);
-        
-        // Per le pizze mostriamo solo la lista testuale
         const displayPizze = document.getElementById('lista-pizze-display');
         displayPizze.innerHTML = m.pizze ? m.pizze.replace(/\n/g, "<br>") : "Nessuna pizza oggi.";
     });
@@ -109,22 +107,13 @@
     function renderSection(sectionId, textData) {
         const container = document.querySelector(`#${sectionId} .content`);
         container.innerHTML = "";
-        
-        if(!textData) {
-            container.innerHTML = "<em>Niente oggi.</em>";
-            return;
-        }
-
+        if(!textData) { container.innerHTML = "<em>Niente oggi.</em>"; return; }
         const righe = textData.split('\n');
         righe.forEach(piatto => {
             if(piatto.trim() !== "") {
-                // Creiamo una riga con Nome Piatto e Input Numero
                 const div = document.createElement('div');
                 div.className = 'piatto-row';
-                div.innerHTML = `
-                    <span>${piatto}</span>
-                    <input type="number" class="qty-piatto" data-nome="${piatto}" value="0" min="0">
-                `;
+                div.innerHTML = `<span>${piatto}</span><input type="number" class="qty-piatto" data-nome="${piatto}" value="0" min="0">`;
                 container.appendChild(div);
             }
         });
@@ -133,10 +122,7 @@
     function aggiungiRigaPizza() {
         const div = document.createElement('div');
         div.className = 'pizza-input-group';
-        div.innerHTML = `
-            <input type="text" class="pizza-name" placeholder="Altra pizza...">
-            <input type="number" class="pizza-qty qty-input" value="1" min="1">
-        `;
+        div.innerHTML = `<input type="text" class="pizza-name" placeholder="Altra pizza..."><input type="number" class="pizza-qty qty-input" value="1" min="1">`;
         document.getElementById('custom-pizza-container').appendChild(div);
     }
 
@@ -146,49 +132,70 @@
     }
 
     function inviaOrdine() {
+        // --- 1. CONTROLLO ORARIO (IL VIGILE) ---
+        const now = new Date();
+        const oraAttuale = now.getHours();
+        const minutiAttuali = now.getMinutes();
+        const minutiTotaliAdesso = oraAttuale * 60 + minutiAttuali;
+
+        // 9:00 = 540 minuti | 12:15 = 735 minuti
+        const APERTURA = 9 * 60; 
+        const CHIUSURA = 12 * 60 + 15;
+
+        // Se vuoi testare il sito adesso e sono passate le 12:15, commenta le 4 righe qui sotto!
+        if (minutiTotaliAdesso < APERTURA || minutiTotaliAdesso > CHIUSURA) {
+            alert("⚠️ GLI ORDINI SONO CHIUSI!\n\nPuoi inviare l'ordine solo tra le 09:00 e le 12:15.");
+            return;
+        }
+        // ----------------------------------------
+
         const nome = document.getElementById('nome').value;
+        const telefono = document.getElementById('telefono').value;
         const tipo = document.getElementById('tipo-ordine').value;
         const tavolo = document.getElementById('nome-tavolo').value;
-        const orario = document.getElementById('orario').value;
+        const orarioScelto = document.getElementById('orario').value;
 
+        // Validazione Dati
         if(!nome) { alert("Inserisci il nome!"); return; }
-        if(tipo === 'tavolo' && !tavolo) { alert("Inserisci il tavolo!"); return; }
+        if(!telefono) { alert("Inserisci il numero di telefono!"); return; }
+        
+        // Controllo validità orario pranzo (12:00 - 14:15)
+        if(orarioScelto < "12:00" || orarioScelto > "14:15") {
+            alert("L'orario del pranzo deve essere compreso tra le 12:00 e le 14:15.");
+            return;
+        }
+
+        if(tipo === 'tavolo' && !tavolo) { alert("Inserisci il nome del tavolo!"); return; }
 
         let carrello = [];
-
-        // 1. Raccogli Primi, Secondi, Contorni
         document.querySelectorAll('.qty-piatto').forEach(input => {
             const q = parseInt(input.value);
-            if(q > 0) {
-                carrello.push({ nome: input.dataset.nome, qty: q });
-            }
+            if(q > 0) carrello.push({ nome: input.dataset.nome, qty: q });
         });
-
-        // 2. Raccogli Pizze (Testo libero)
         document.querySelectorAll('.pizza-input-group').forEach(group => {
             const nomePizza = group.querySelector('.pizza-name').value;
             const qPizza = parseInt(group.querySelector('.pizza-qty').value);
-            if(nomePizza.trim() !== "" && qPizza > 0) {
-                carrello.push({ nome: "PIZZA: " + nomePizza, qty: qPizza });
-            }
+            if(nomePizza.trim() !== "" && qPizza > 0) carrello.push({ nome: "PIZZA: " + nomePizza, qty: qPizza });
         });
 
-        if(carrello.length === 0) { alert("Seleziona almeno un piatto o una pizza!"); return; }
+        if(carrello.length === 0) { alert("Seleziona almeno un piatto!"); return; }
 
         const ordine = {
             cliente: nome,
-            items: carrello, // Ora salviamo un array di oggetti {nome, qty}
+            telefono: telefono, // Aggiunto telefono
+            items: carrello,
             tipo: tipo,
             tavolo: (tipo === 'tavolo') ? tavolo.toUpperCase() : "N/A",
-            orario: orario,
+            orario: orarioScelto,
             timestamp: Date.now()
         };
 
         db.ref('ordini').push(ordine)
             .then(() => {
-                alert("Ordine Inviato!");
+                alert("Ordine Inviato con successo!");
                 location.reload();
-            });
+            })
+            .catch(err => alert("Errore: " + err.message));
     }
 </script>
 </body>
