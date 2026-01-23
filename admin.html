@@ -6,6 +6,7 @@
     <title>Admin Ristorante</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
@@ -13,7 +14,8 @@
 
 <div id="login-overlay">
     <div id="login-box">
-        <h2>Area Riservata</h2>
+        <h2 style="color: var(--primary-color);">Area Riservata</h2>
+        <p>Inserisci la password amministratore</p>
         <input type="password" id="admin-pass" placeholder="Password...">
         <button onclick="checkLogin()">ENTRA</button>
     </div>
@@ -22,25 +24,30 @@
 <div class="container" id="admin-content" style="display:none;">
     <h1>Gestione Menu & Ordini</h1>
     
-    <div style="background:#f8f9fa; padding:15px; border-radius:8px; border:1px solid #ddd;">
+    <div class="menu-section" style="background: #fff; border-left: 5px solid var(--primary-color);">
         <h2 style="margin-top:0;">1. Imposta Menu del Giorno</h2>
+        
         <div class="menu-grid">
             <h3>🍝 Primi Piatti</h3>
-            <textarea id="menu-primi" rows="3"></textarea>
+            <textarea id="menu-primi" rows="3" placeholder="Es: Pasta al sugo..."></textarea>
+            
             <h3>🍖 Secondi</h3>
-            <textarea id="menu-secondi" rows="3"></textarea>
+            <textarea id="menu-secondi" rows="3" placeholder="Es: Cotoletta..."></textarea>
+            
             <h3>🥗 Contorni</h3>
-            <textarea id="menu-contorni" rows="3"></textarea>
+            <textarea id="menu-contorni" rows="3" placeholder="Es: Insalata..."></textarea>
+            
             <h3>🍕 Pizze (Info testo)</h3>
-            <textarea id="menu-pizze" rows="3"></textarea>
+            <textarea id="menu-pizze" rows="3" placeholder="Es: Margherita, Diavola..."></textarea>
         </div>
+
         <button onclick="salvaMenu()" style="margin-top:15px;">PUBBLICA MENU</button>
     </div>
 
     <hr>
 
     <h2>Ordini Ricevuti</h2>
-    <div id="status-db" style="color:gray; font-size:0.9em;">Stato: In attesa di login...</div>
+    <div id="status-db" style="color:gray; font-size:0.9em; margin-bottom:15px;">Stato: In attesa di login...</div>
     
     <h3>🥡 ASPORTO</h3>
     <div id="lista-asporto"></div>
@@ -48,13 +55,16 @@
     <h3>🍽️ TAVOLI</h3>
     <div id="lista-tavoli"></div>
 
-    <button class="delete-btn" onclick="cancellaTutto()">🗑️ RESET GIORNATA</button>
+    <button class="delete-btn" onclick="cancellaTutto()">🗑️ RESET GIORNATA (CANCELLA TUTTO)</button>
 </div>
 
 <script>
-    const PASSWORD_ADMIN = "pizza123"; // CAMBIA PASSWORD
+    const PASSWORD_ADMIN = "pizza123"; // <--- CAMBIA LA PASSWORD QUI SE VUOI
 
-    // --- CONFIGURAZIONE FIREBASE ---
+    // ***********************************************************
+    // ⚠️ INCOLLA QUI SOTTO LA TUA CONFIGURAZIONE FIREBASE
+    // NON CANCELLARE LE PARENTESI GRAFFE { }
+    // ***********************************************************
     const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
         authDomain: "melastregatauni.firebaseapp.com",
@@ -64,28 +74,39 @@
         storageBucket: "melastregatauni.firebasestorage.app",
         messagingSenderId: "438544443213",
         appId: "1:438544443213:web:f30f121f0642b8e8a9b904"
-    };------------------------------
+    };
+    // ***********************************************************
 
     let db;
 
+    // Funzione di Login
     function checkLogin() {
-        if(document.getElementById('admin-pass').value === PASSWORD_ADMIN) {
+        const pass = document.getElementById('admin-pass').value;
+        if(pass === PASSWORD_ADMIN) {
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('admin-content').style.display = 'block';
             avviaFirebase();
-        } else { alert("Password errata"); }
+        } else {
+            alert("Password errata");
+        }
     }
 
+    // Avvio Firebase solo dopo il login
     function avviaFirebase() {
         if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.database();
-            document.getElementById('status-db').innerText = "Stato: Connesso.";
-            caricaDati();
+            try {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.database();
+                document.getElementById('status-db').innerText = "Stato: Connesso. In attesa dati...";
+                caricaDati();
+            } catch (e) {
+                alert("Errore Configurazione: " + e.message);
+            }
         }
     }
 
     function caricaDati() {
+        // 1. Carica Menu nelle caselle
         db.ref('menu').once('value', (s) => {
             const m = s.val();
             if(m && typeof m === 'object') {
@@ -96,7 +117,9 @@
             }
         });
 
+        // 2. Ascolta gli Ordini
         db.ref('ordini').on('value', (snapshot) => {
+            document.getElementById('status-db').innerText = "Stato: Dati ricevuti e aggiornati.";
             renderOrdini(snapshot.val());
         });
     }
@@ -106,13 +129,17 @@
         const divTavoli = document.getElementById('lista-tavoli');
         divAsporto.innerHTML = ""; divTavoli.innerHTML = "";
 
-        if(!data) { divAsporto.innerHTML = "<p>Nessun ordine presente.</p>"; return; }
+        if(!data) { 
+            divAsporto.innerHTML = "<p style='color:#888;'>Nessun ordine presente.</p>"; 
+            return; 
+        }
 
         let gruppiTavoli = {};
 
         Object.values(data).forEach(ordine => {
             if (!ordine.items && !ordine.piatti) return; 
 
+            // Gestione Piatti (Compatibilità vecchio/nuovo)
             let piattiHTML = "";
             if(ordine.items) {
                 piattiHTML = ordine.items.map(i => `<span>• <strong>${i.qty}x</strong> ${i.nome}</span>`).join("<br>");
@@ -120,25 +147,31 @@
                 piattiHTML = ordine.piatti.join(", "); 
             }
 
-            // QUI ABBIAMO AGGIUNTO IL TELEFONO
-            const telefonoHTML = ordine.telefono ? `<br><small>📞 <a href="tel:${ordine.telefono}">${ordine.telefono}</a></small>` : "";
+            // Gestione Telefono (Nuova funzione)
+            const telefonoHTML = ordine.telefono 
+                ? `<div style="margin-top:5px; font-size:0.9em;">📞 <a href="tel:${ordine.telefono}" style="color:var(--secondary-color); text-decoration:none; font-weight:bold;">${ordine.telefono}</a></div>` 
+                : "";
 
+            // Creazione Card HTML
             const htmlCard = `
-                <div class="card" style="border-left: 5px solid ${ordine.tipo === 'asporto' ? '#28a745' : '#007bff'}">
-                    <strong>${ordine.cliente}</strong> (${ordine.orario})
+                <div class="card" style="border-left: 5px solid ${ordine.tipo === 'asporto' ? '#28a745' : '#007bff'} !important;">
+                    <div style="font-size:1.1em;"><strong>${ordine.cliente}</strong> <span style="font-size:0.9em; color:#666;">(${ordine.orario})</span></div>
                     ${telefonoHTML}
-                    <div style="margin-top:5px; font-size:0.95em; color:#444;">${piattiHTML}</div>
+                    <div style="margin-top:8px; padding-top:8px; border-top:1px dashed #eee; color:#444;">${piattiHTML}</div>
                 </div>`;
 
             if(ordine.tipo === 'asporto') {
                 divAsporto.innerHTML += htmlCard;
             } else {
                 const nomeTav = ordine.tavolo || "Sconosciuto";
-                if(!gruppiTavoli[nomeTav]) gruppiTavoli[nomeTav] = [];
+                if(!gruppiTavoli[nomeTav]) {
+                    gruppiTavoli[nomeTav] = [];
+                }
                 gruppiTavoli[nomeTav].push(htmlCard);
             }
         });
 
+        // Stampa i Tavoli Raggruppati
         for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
             divTavoli.innerHTML += `
                 <div class="tavolo-group">
@@ -156,16 +189,16 @@
             pizze: document.getElementById('menu-pizze').value
         };
         db.ref('menu').set(menuData);
-        alert("Menu Pubblicato!");
+        alert("Menu Pubblicato con successo!");
     }
 
     function cancellaTutto() {
-        if(confirm("Sei sicuro di voler cancellare TUTTI gli ordini?")) {
+        if(confirm("ATTENZIONE: Stai per cancellare TUTTI gli ordini di oggi.\nVuoi procedere?")) {
             db.ref('ordini').remove();
-            alert("Database pulito.");
+            alert("Database pulito. Pronto per una nuova giornata.");
+            location.reload();
         }
     }
 </script>
 </body>
 </html>
-
