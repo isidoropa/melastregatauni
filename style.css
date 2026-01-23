@@ -1,25 +1,209 @@
-body { font-family: sans-serif; margin: 0; padding: 20px; background-color: #f4f4f9; }
-h1, h2 { color: #333; text-align: center; }
-.container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-input, select, button { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-button { background-color: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; }
-button:hover { background-color: #218838; }
-.item-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 10px 0; }
-.hidden { display: none; }
-.card { background: #e9ecef; padding: 10px; margin-bottom: 10px; border-radius: 5px; border-left: 5px solid #007bff; }
-.tavolo-group { background: #fff3cd; border: 1px solid #ffeeba; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
-.tavolo-title { font-weight: bold; color: #856404; margin-bottom: 10px; text-transform: uppercase; }
-.delete-btn { background-color: #dc3545; margin-top: 20px; }
+:root {
+    --primary-color: #ff6b6b; /* Rosso Corallo (Appetitoso) */
+    --primary-hover: #ee5253;
+    --secondary-color: #54a0ff; /* Blu per azioni secondarie */
+    --bg-color: #f7f9fc;
+    --card-bg: #ffffff;
+    --text-dark: #2d3436;
+    --text-light: #636e72;
+    --shadow-soft: 0 10px 25px rgba(0,0,0,0.05);
+    --shadow-hover: 0 15px 35px rgba(0,0,0,0.1);
+    --radius: 16px;
+}
 
-/* --- AGGIUNTA PER LOGIN ADMIN --- */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-color);
+    margin: 0;
+    padding: 20px;
+    color: var(--text-dark);
+    -webkit-font-smoothing: antialiased;
+}
+
+h1 {
+    text-align: center;
+    color: var(--text-dark);
+    font-weight: 700;
+    margin-bottom: 10px;
+    font-size: 2.2em;
+}
+
+h2, h3 {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+/* --- CONTENITORE PRINCIPALE --- */
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-soft);
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- FORM E INPUT --- */
+input, select, textarea {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 8px 0 20px 0;
+    border: 2px solid #dfe6e9;
+    border-radius: 12px;
+    background: #fdfdfd;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1em;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1);
+}
+
+label {
+    font-weight: 600;
+    font-size: 0.9em;
+    color: var(--text-light);
+    margin-left: 5px;
+}
+
+/* --- BOTTONI --- */
+button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary-color), #ff9f43);
+    color: white;
+    font-weight: 700;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 107, 107, 0.6);
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+.delete-btn {
+    background: linear-gradient(135deg, #ff7675, #d63031);
+    box-shadow: 0 4px 15px rgba(214, 48, 49, 0.3);
+    margin-top: 30px;
+}
+
+.add-btn {
+    background: linear-gradient(135deg, #74b9ff, #0984e3);
+    box-shadow: 0 4px 15px rgba(9, 132, 227, 0.3);
+    padding: 10px;
+    font-size: 0.9em;
+}
+
+/* --- SEZIONI MENU --- */
+.menu-section {
+    background: #fff;
+    border: 1px solid #f1f2f6;
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+    transition: transform 0.2s;
+}
+
+.menu-section:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-soft);
+}
+
+.menu-section h3 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    display: inline-block;
+}
+
+/* --- RIGHE PIATTI --- */
+.piatto-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px dashed #dfe6e9;
+}
+
+.piatto-row:last-child { border-bottom: none; }
+
+.piatto-row span {
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+/* Input Quantità piccolino */
+.qty-input, .qty-piatto {
+    width: 60px;
+    text-align: center;
+    margin: 0;
+    padding: 8px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+/* --- CARTA ORDINE (ADMIN) --- */
+.card {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    border-left-width: 6px !important; /* Forza lo spessore del colore laterale */
+    transition: transform 0.2s;
+}
+
+.card:hover { transform: scale(1.02); }
+
+.tavolo-group {
+    background: #fff8e1; /* Giallo chiarissimo per i tavoli */
+    border: 2px dashed #ffeaa7;
+    padding: 20px;
+    margin-bottom: 25px;
+    border-radius: var(--radius);
+}
+
+.tavolo-title {
+    font-weight: 800;
+    color: #e17055;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* --- LOGIN OVERLAY (ADMIN) --- */
 #login-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #2c3e50;
-    z-index: 9999; /* Sta sopra a tutto */
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(45, 52, 54, 0.95);
+    backdrop-filter: blur(5px); /* Effetto vetro sfocato */
+    z-index: 9999;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -27,62 +211,29 @@ button:hover { background-color: #218838; }
 
 #login-box {
     background: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
     text-align: center;
     width: 90%;
-    max-width: 350px;
+    max-width: 400px;
+    animation: zoomIn 0.4s ease;
 }
 
+@keyframes zoomIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
 
-/* ...Tieni pure il CSS di base che avevi... */
+/* --- UTILITY --- */
+.hidden { display: none !important; }
+hr { border: 0; border-top: 1px solid #dfe6e9; margin: 30px 0; }
+.pizza-input-group { display: flex; gap: 10px; margin-bottom: 10px; }
+.pizza-name { flex-grow: 1; margin-bottom: 0; }
 
-/* NUOVI STILI PER IL MENU AVANZATO */
-.menu-section {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 20px;
+/* Adattamenti Mobile */
+@media (max-width: 480px) {
+    .container { padding: 20px; }
+    h1 { font-size: 1.8em; }
+    button { font-size: 1em; }
 }
-.menu-section h3 {
-    margin-top: 0;
-    border-bottom: 2px solid #007bff;
-    padding-bottom: 5px;
-    color: #007bff;
-}
-.piatto-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px dashed #eee;
-}
-.qty-input {
-    width: 60px;
-    text-align: center;
-    margin-left: 10px;
-    padding: 5px;
-}
-.pizza-input-group {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-.pizza-name {
-    flex-grow: 1;
-}
-.add-btn {
-    background-color: #17a2b8;
-    font-size: 0.9em;
-    margin-top: 10px;
-}
-.lista-pizze-admin {
-    font-size: 0.9em;
-    color: #666;
-    margin-bottom: 15px;
-    font-style: italic;
-}
-#login-box h2 { margin-top: 0; color: #333; }
-#login-box input { text-align: center; font-size: 18px; margin-bottom: 15px; }
