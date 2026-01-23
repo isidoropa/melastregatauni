@@ -115,38 +115,64 @@
     function renderOrdini(data) {
         const divAsporto = document.getElementById('lista-asporto');
         const divTavoli = document.getElementById('lista-tavoli');
-        divAsporto.innerHTML = ""; divTavoli.innerHTML = "";
+        
+        // Pulisce la schermata prima di riempirla
+        divAsporto.innerHTML = ""; 
+        divTavoli.innerHTML = "";
 
-        if(!data) { divAsporto.innerHTML = "<p>Nessun ordine.</p>"; return; }
+        if(!data) { 
+            divAsporto.innerHTML = "<p>Nessun ordine presente.</p>"; 
+            return; 
+        }
 
-        let gruppiTavoli = {};
+        let gruppiTavoli = {}; // Usiamo questa variabile, NON "groups"
 
+        // Trasformiamo i dati in array
         Object.values(data).forEach(ordine => {
-            // Controllo di sicurezza: se per caso c'è un ordine vecchio formato, lo ignoriamo per non bloccare tutto
-            if (!ordine.items) return;
+            
+            // 1. Controllo di sicurezza: se l'ordine è incompleto, lo saltiamo
+            if (!ordine.items && !ordine.piatti) return; 
 
-            // Formattiamo la lista piatti con le quantità
-            let piattiHTML = ordine.items.map(i => 
-                `<span>• <strong>${i.qty}x</strong> ${i.nome}</span>`
-            ).join("<br>");
+            // 2. Generiamo la lista dei piatti (supporta sia il vecchio che il nuovo formato)
+            let piattiHTML = "";
+            if(ordine.items) {
+                // Nuovo formato con quantità
+                piattiHTML = ordine.items.map(i => `<span>• <strong>${i.qty}x</strong> ${i.nome}</span>`).join("<br>");
+            } else if (ordine.piatti) {
+                // Vecchio formato (solo testo)
+                piattiHTML = ordine.piatti.join(", "); 
+            }
 
+            // 3. Creiamo la card HTML
             const htmlCard = `
                 <div class="card" style="border-left: 5px solid ${ordine.tipo === 'asporto' ? '#28a745' : '#007bff'}">
                     <strong>${ordine.cliente}</strong> (${ordine.orario})<br>
                     <div style="margin-top:5px; font-size:0.95em; color:#444;">${piattiHTML}</div>
                 </div>`;
 
+            // 4. Smistiamo l'ordine (Asporto o Tavolo)
             if(ordine.tipo === 'asporto') {
                 divAsporto.innerHTML += htmlCard;
             } else {
-                // QUI C'ERA L'ERRORE: ora è corretto
-                const nomeTav = ordine.tavolo;
+                // CORREZIONE QUI SOTTO: Usiamo "gruppiTavoli", non "groups"
+                const nomeTav = ordine.tavolo || "Sconosciuto";
+                
                 if(!gruppiTavoli[nomeTav]) {
                     gruppiTavoli[nomeTav] = [];
                 }
                 gruppiTavoli[nomeTav].push(htmlCard);
             }
         });
+
+        // 5. Stampiamo a video i gruppi di tavoli
+        for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
+            divTavoli.innerHTML += `
+                <div class="tavolo-group">
+                    <div class="tavolo-title">TAVOLO: ${tavolo}</div>
+                    ${cards.join("")}
+                </div>`;
+        }
+    }
 
         // Ora mostriamo i gruppi di tavoli a schermo
         for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
@@ -186,3 +212,4 @@
 </body>
 
 </html>
+
