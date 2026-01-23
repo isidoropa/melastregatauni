@@ -14,7 +14,7 @@
 
 <div id="login-overlay">
     <div id="login-box">
-        <h2 style="color: var(--primary-color);">Area Riservata</h2>
+        <h2 style="color: #ff6b6b;">Area Riservata</h2>
         <p>Inserisci la password amministratore</p>
         <input type="password" id="admin-pass" placeholder="Password...">
         <button onclick="checkLogin()">ENTRA</button>
@@ -24,8 +24,8 @@
 <div class="container" id="admin-content" style="display:none;">
     <h1>Gestione Menu & Ordini</h1>
     
-    <div class="menu-section" style="background: #fff; border-left: 5px solid var(--primary-color);">
-        <h2 style="margin-top:0;">1. Imposta Menu del Giorno</h2>
+    <div class="menu-section" style="border-left: 5px solid #ff6b6b;">
+        <h2 style="margin-top:0;">1. Imposta Menu</h2>
         
         <div class="menu-grid">
             <h3>🍝 Primi Piatti</h3>
@@ -37,7 +37,7 @@
             <h3>🥗 Contorni</h3>
             <textarea id="menu-contorni" rows="3" placeholder="Es: Insalata..."></textarea>
             
-            <h3>🍕 Pizze (Info testo)</h3>
+            <h3>🍕 Pizze (Lista)</h3>
             <textarea id="menu-pizze" rows="3" placeholder="Es: Margherita, Diavola..."></textarea>
         </div>
 
@@ -55,15 +55,15 @@
     <h3>🍽️ TAVOLI</h3>
     <div id="lista-tavoli"></div>
 
-    <button class="delete-btn" onclick="cancellaTutto()">🗑️ RESET GIORNATA (CANCELLA TUTTO)</button>
+    <button class="delete-btn" onclick="cancellaTutto()">🗑️ RESET GIORNATA</button>
 </div>
 
 <script>
-    const PASSWORD_ADMIN = "pizza123"; // <--- CAMBIA LA PASSWORD QUI SE VUOI
+    const PASSWORD_ADMIN = "pizza123"; 
 
     // ***********************************************************
-    // ⚠️ INCOLLA QUI SOTTO LA TUA CONFIGURAZIONE FIREBASE
-    // NON CANCELLARE LE PARENTESI GRAFFE { }
+    // INCOLLA LA TUA CONFIGURAZIONE FIREBASE QUI SOTTO
+    // ATTENZIONE ALLE PARENTESI { }
     // ***********************************************************
     const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
@@ -79,7 +79,6 @@
 
     let db;
 
-    // Funzione di Login
     function checkLogin() {
         const pass = document.getElementById('admin-pass').value;
         if(pass === PASSWORD_ADMIN) {
@@ -91,13 +90,12 @@
         }
     }
 
-    // Avvio Firebase solo dopo il login
     function avviaFirebase() {
         if (!firebase.apps.length) {
             try {
                 firebase.initializeApp(firebaseConfig);
                 db = firebase.database();
-                document.getElementById('status-db').innerText = "Stato: Connesso. In attesa dati...";
+                document.getElementById('status-db').innerText = "Stato: Connesso.";
                 caricaDati();
             } catch (e) {
                 alert("Errore Configurazione: " + e.message);
@@ -106,7 +104,7 @@
     }
 
     function caricaDati() {
-        // 1. Carica Menu nelle caselle
+        // Carica Menu
         db.ref('menu').once('value', (s) => {
             const m = s.val();
             if(m && typeof m === 'object') {
@@ -117,9 +115,9 @@
             }
         });
 
-        // 2. Ascolta gli Ordini
+        // Ascolta Ordini
         db.ref('ordini').on('value', (snapshot) => {
-            document.getElementById('status-db').innerText = "Stato: Dati ricevuti e aggiornati.";
+            document.getElementById('status-db').innerText = "Stato: Aggiornato.";
             renderOrdini(snapshot.val());
         });
     }
@@ -130,7 +128,7 @@
         divAsporto.innerHTML = ""; divTavoli.innerHTML = "";
 
         if(!data) { 
-            divAsporto.innerHTML = "<p style='color:#888;'>Nessun ordine presente.</p>"; 
+            divAsporto.innerHTML = "<p style='color:#888;'>Nessun ordine.</p>"; 
             return; 
         }
 
@@ -139,7 +137,7 @@
         Object.values(data).forEach(ordine => {
             if (!ordine.items && !ordine.piatti) return; 
 
-            // Gestione Piatti (Compatibilità vecchio/nuovo)
+            // Formatta Piatti
             let piattiHTML = "";
             if(ordine.items) {
                 piattiHTML = ordine.items.map(i => `<span>• <strong>${i.qty}x</strong> ${i.nome}</span>`).join("<br>");
@@ -147,12 +145,12 @@
                 piattiHTML = ordine.piatti.join(", "); 
             }
 
-            // Gestione Telefono (Nuova funzione)
+            // Formatta Telefono
             const telefonoHTML = ordine.telefono 
-                ? `<div style="margin-top:5px; font-size:0.9em;">📞 <a href="tel:${ordine.telefono}" style="color:var(--secondary-color); text-decoration:none; font-weight:bold;">${ordine.telefono}</a></div>` 
+                ? `<div style="margin-top:5px; font-size:0.9em;">📞 <a href="tel:${ordine.telefono}" style="font-weight:bold;">${ordine.telefono}</a></div>` 
                 : "";
 
-            // Creazione Card HTML
+            // Crea Card
             const htmlCard = `
                 <div class="card" style="border-left: 5px solid ${ordine.tipo === 'asporto' ? '#28a745' : '#007bff'} !important;">
                     <div style="font-size:1.1em;"><strong>${ordine.cliente}</strong> <span style="font-size:0.9em; color:#666;">(${ordine.orario})</span></div>
@@ -164,14 +162,12 @@
                 divAsporto.innerHTML += htmlCard;
             } else {
                 const nomeTav = ordine.tavolo || "Sconosciuto";
-                if(!gruppiTavoli[nomeTav]) {
-                    gruppiTavoli[nomeTav] = [];
-                }
+                if(!gruppiTavoli[nomeTav]) { gruppiTavoli[nomeTav] = []; }
                 gruppiTavoli[nomeTav].push(htmlCard);
             }
         });
 
-        // Stampa i Tavoli Raggruppati
+        // Mostra Tavoli
         for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
             divTavoli.innerHTML += `
                 <div class="tavolo-group">
@@ -189,13 +185,13 @@
             pizze: document.getElementById('menu-pizze').value
         };
         db.ref('menu').set(menuData);
-        alert("Menu Pubblicato con successo!");
+        alert("Menu Pubblicato!");
     }
 
     function cancellaTutto() {
-        if(confirm("ATTENZIONE: Stai per cancellare TUTTI gli ordini di oggi.\nVuoi procedere?")) {
+        if(confirm("Vuoi cancellare TUTTI gli ordini di oggi?")) {
             db.ref('ordini').remove();
-            alert("Database pulito. Pronto per una nuova giornata.");
+            alert("Pulito.");
             location.reload();
         }
     }
