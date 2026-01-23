@@ -4,66 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Ristorante</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script> <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <style>
+        :root { --primary: #ff6b6b; --bg: #f4f7f6; --dark: #2d3436; --light: #fff; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--dark); }
+        .container { max-width: 600px; margin: 0 auto; background: var(--light); padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1, h2, h3 { text-align: center; margin-bottom: 15px; }
+        h1 { color: var(--primary); }
+        
+        input, textarea { width: 100%; padding: 12px; margin: 5px 0 15px 0; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
+        input:focus, textarea:focus { border-color: var(--primary); outline: none; }
+        
+        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1.1em; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        button:hover { opacity: 0.9; transform: translateY(-2px); }
+        .delete-btn { background: #d63031; margin-top: 30px; }
+        .logout-btn { background: #636e72; font-size: 0.9em; padding: 10px; margin-bottom: 20px; }
+        
+        .menu-section { border: 1px solid #eee; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid var(--primary); }
+        .card { background: #fff; padding: 15px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .tavolo-group { background: #fffdf2; border: 1px solid #ffeeba; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        #login-box { background: white; padding: 40px; border-radius: 15px; width: 300px; text-align: center; }
+        .error-msg { color: red; font-size: 0.9em; margin-top: 10px; display: none; }
+    </style>
 </head>
 <body>
 
 <div id="login-overlay">
     <div id="login-box">
-        <h2 style="color: #ff6b6b;">Area Riservata</h2>
-        <p>Inserisci la password amministratore</p>
-        <input type="password" id="admin-pass" placeholder="Password...">
-        <button onclick="checkLogin()">ENTRA</button>
+        <h2 style="color:var(--primary)">Area Admin</h2>
+        <input type="email" id="email" placeholder="Email Admin (es. admin@mensa.it)">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">ENTRA</button>
+        <div id="login-error" class="error-msg">Credenziali sbagliate!</div>
     </div>
 </div>
 
 <div class="container" id="admin-content" style="display:none;">
-    <h1>Gestione Menu & Ordini</h1>
+    <button class="logout-btn" onclick="logout()">Esci</button>
+    <h1>Gestione Ristorante</h1>
     
-    <div class="menu-section" style="border-left: 5px solid #ff6b6b;">
-        <h2 style="margin-top:0;">1. Imposta Menu</h2>
-        
+    <div class="menu-section">
+        <h2>Imposta Menu</h2>
         <div class="menu-grid">
-            <h3>🍝 Primi Piatti</h3>
-            <textarea id="menu-primi" rows="3" placeholder="Es: Pasta al sugo..."></textarea>
-            
-            <h3>🍖 Secondi</h3>
-            <textarea id="menu-secondi" rows="3" placeholder="Es: Cotoletta..."></textarea>
-            
-            <h3>🥗 Contorni</h3>
-            <textarea id="menu-contorni" rows="3" placeholder="Es: Insalata..."></textarea>
-            
-            <h3>🍕 Pizze (Lista)</h3>
-            <textarea id="menu-pizze" rows="3" placeholder="Es: Margherita, Diavola..."></textarea>
+            <h3>🍝 Primi</h3> <textarea id="menu-primi" rows="2"></textarea>
+            <h3>🍖 Secondi</h3> <textarea id="menu-secondi" rows="2"></textarea>
+            <h3>🥗 Contorni</h3> <textarea id="menu-contorni" rows="2"></textarea>
+            <h3>🍕 Pizze (Info)</h3> <textarea id="menu-pizze" rows="2"></textarea>
         </div>
-
-        <button onclick="salvaMenu()" style="margin-top:15px;">PUBBLICA MENU</button>
+        <button onclick="salvaMenu()">PUBBLICA MENU</button>
     </div>
 
-    <hr>
+    <hr style="border:0; border-top:1px solid #eee; margin:30px 0;">
 
-    <h2>Ordini Ricevuti</h2>
-    <div id="status-db" style="color:gray; font-size:0.9em; margin-bottom:15px;">Stato: In attesa di login...</div>
-    
-    <h3>🥡 ASPORTO</h3>
+    <h2>Ordini in Arrivo</h2>
+    <div id="status-db" style="text-align:center; color:gray; font-size:0.8em; margin-bottom:10px;">Connessione...</div>
+
+    <h3>🥡 Asporto</h3>
     <div id="lista-asporto"></div>
 
-    <h3>🍽️ TAVOLI</h3>
+    <h3>🍽️ Tavoli</h3>
     <div id="lista-tavoli"></div>
 
     <button class="delete-btn" onclick="cancellaTutto()">🗑️ RESET GIORNATA</button>
 </div>
 
 <script>
-    const PASSWORD_ADMIN = "pizza123"; 
-
     // ***********************************************************
-    // INCOLLA LA TUA CONFIGURAZIONE FIREBASE QUI SOTTO
-    // ATTENZIONE ALLE PARENTESI { }
+    // 👇 INCOLLA LE TUE CHIAVI FIREBASE QUI SOTTO 👇
     // ***********************************************************
     const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
@@ -77,31 +91,50 @@
     };
     // ***********************************************************
 
-    let db;
+    // Inizializza Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
 
-    function checkLogin() {
-        const pass = document.getElementById('admin-pass').value;
-        if(pass === PASSWORD_ADMIN) {
+    // --- GESTIONE LOGIN (SICURO) ---
+    
+    // Controlla se l'utente è già loggato (così se ricarichi la pagina non devi rimettere la pass)
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            // Utente loggato: nascondi login, mostra contenuto
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('admin-content').style.display = 'block';
-            avviaFirebase();
+            caricaDati(); // Avvia il download dei dati
         } else {
-            alert("Password errata");
+            // Utente non loggato: mostra login
+            document.getElementById('login-overlay').style.display = 'flex';
+            document.getElementById('admin-content').style.display = 'none';
         }
+    });
+
+    function login() {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+        const errorMsg = document.getElementById('login-error');
+
+        auth.signInWithEmailAndPassword(email, pass)
+            .then((userCredential) => {
+                // Login riuscito, onAuthStateChanged farà il resto
+                errorMsg.style.display = 'none';
+            })
+            .catch((error) => {
+                errorMsg.innerText = "Errore: " + error.message;
+                errorMsg.style.display = 'block';
+            });
     }
 
-    function avviaFirebase() {
-        if (!firebase.apps.length) {
-            try {
-                firebase.initializeApp(firebaseConfig);
-                db = firebase.database();
-                document.getElementById('status-db').innerText = "Stato: Connesso.";
-                caricaDati();
-            } catch (e) {
-                alert("Errore Configurazione: " + e.message);
-            }
-        }
+    function logout() {
+        auth.signOut().then(() => {
+            location.reload();
+        });
     }
+
+    // --- GESTIONE DATI (Uguale a prima) ---
 
     function caricaDati() {
         // Carica Menu
@@ -117,7 +150,7 @@
 
         // Ascolta Ordini
         db.ref('ordini').on('value', (snapshot) => {
-            document.getElementById('status-db').innerText = "Stato: Aggiornato.";
+            document.getElementById('status-db').innerText = "Dati aggiornati in tempo reale.";
             renderOrdini(snapshot.val());
         });
     }
@@ -128,7 +161,7 @@
         divAsporto.innerHTML = ""; divTavoli.innerHTML = "";
 
         if(!data) { 
-            divAsporto.innerHTML = "<p style='color:#888;'>Nessun ordine.</p>"; 
+            divAsporto.innerHTML = "<p style='color:#999; text-align:center;'>Nessun ordine.</p>"; 
             return; 
         }
 
@@ -137,7 +170,6 @@
         Object.values(data).forEach(ordine => {
             if (!ordine.items && !ordine.piatti) return; 
 
-            // Formatta Piatti
             let piattiHTML = "";
             if(ordine.items) {
                 piattiHTML = ordine.items.map(i => `<span>• <strong>${i.qty}x</strong> ${i.nome}</span>`).join("<br>");
@@ -145,14 +177,12 @@
                 piattiHTML = ordine.piatti.join(", "); 
             }
 
-            // Formatta Telefono
             const telefonoHTML = ordine.telefono 
-                ? `<div style="margin-top:5px; font-size:0.9em;">📞 <a href="tel:${ordine.telefono}" style="font-weight:bold;">${ordine.telefono}</a></div>` 
+                ? `<div style="margin-top:5px; font-size:0.9em;">📞 <a href="tel:${ordine.telefono}" style="font-weight:bold; color:#54a0ff;">${ordine.telefono}</a></div>` 
                 : "";
 
-            // Crea Card
             const htmlCard = `
-                <div class="card" style="border-left: 5px solid ${ordine.tipo === 'asporto' ? '#28a745' : '#007bff'} !important;">
+                <div class="card" style="border-left: 5px solid ${ordine.tipo === 'asporto' ? '#27ae60' : '#2980b9'} !important;">
                     <div style="font-size:1.1em;"><strong>${ordine.cliente}</strong> <span style="font-size:0.9em; color:#666;">(${ordine.orario})</span></div>
                     ${telefonoHTML}
                     <div style="margin-top:8px; padding-top:8px; border-top:1px dashed #eee; color:#444;">${piattiHTML}</div>
@@ -167,7 +197,6 @@
             }
         });
 
-        // Mostra Tavoli
         for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
             divTavoli.innerHTML += `
                 <div class="tavolo-group">
@@ -189,9 +218,8 @@
     }
 
     function cancellaTutto() {
-        if(confirm("Vuoi cancellare TUTTI gli ordini di oggi?")) {
+        if(confirm("Sei sicuro? Cancellerai TUTTI gli ordini.")) {
             db.ref('ordini').remove();
-            alert("Pulito.");
             location.reload();
         }
     }
