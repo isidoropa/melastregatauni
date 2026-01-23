@@ -1,7 +1,4 @@
-
-
-
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -26,29 +23,28 @@
     
     <div style="background:#f8f9fa; padding:15px; border-radius:8px; border:1px solid #ddd;">
         <h2 style="margin-top:0;">1. Imposta Menu del Giorno</h2>
-        <p>Scrivi i piatti uno per riga.</p>
         
         <div class="menu-grid">
             <h3>🍝 Primi Piatti</h3>
-            <textarea id="menu-primi" rows="4" placeholder="Es: Pasta al pomodoro..."></textarea>
+            <textarea id="menu-primi" rows="3"></textarea>
             
             <h3>🍖 Secondi</h3>
-            <textarea id="menu-secondi" rows="4" placeholder="Es: Cotoletta..."></textarea>
+            <textarea id="menu-secondi" rows="3"></textarea>
             
             <h3>🥗 Contorni</h3>
-            <textarea id="menu-contorni" rows="4" placeholder="Es: Insalata mista..."></textarea>
+            <textarea id="menu-contorni" rows="3"></textarea>
             
-            <h3>🍕 Pizze (Lista disponibilità)</h3>
-            <small>Qui scrivi solo l'elenco delle pizze disponibili oggi (per info all'utente).</small>
-            <textarea id="menu-pizze" rows="4" placeholder="Es: Margherita, Diavola..."></textarea>
+            <h3>🍕 Pizze (Info testo)</h3>
+            <textarea id="menu-pizze" rows="3"></textarea>
         </div>
 
-        <button onclick="salvaMenu()" style="margin-top:15px;">PUBBLICA MENU COMPLETO</button>
+        <button onclick="salvaMenu()" style="margin-top:15px;">PUBBLICA MENU</button>
     </div>
 
     <hr>
 
     <h2>Ordini Ricevuti</h2>
+    <div id="status-db" style="color:gray; font-size:0.9em;">Stato: In attesa di login...</div>
     
     <h3>🥡 ASPORTO</h3>
     <div id="lista-asporto"></div>
@@ -60,10 +56,11 @@
 </div>
 
 <script>
-    const PASSWORD_ADMIN = "pizza123"; // CAMBIA PASSWORD
+    const PASSWORD_ADMIN = "pizza123"; // CAMBIA PASSWORD SE VUOI
 
-    // --- CONFIGURAZIONE FIREBASE ---
-    
+    // -----------------------------------------------------------
+    // ⚠️ INCOLLA QUI SOTTO LA TUA CONFIGURAZIONE FIREBASE
+    // -----------------------------------------------------------
     const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
         authDomain: "melastregatauni.firebaseapp.com",
@@ -74,28 +71,37 @@
         messagingSenderId: "438544443213",
         appId: "1:438544443213:web:f30f121f0642b8e8a9b904"
     };
-    // -------------------------------
+    // -----------------------------------------------------------
 
     let db;
 
     function checkLogin() {
-        if(document.getElementById('admin-pass').value === PASSWORD_ADMIN) {
+        const pass = document.getElementById('admin-pass').value;
+        if(pass === PASSWORD_ADMIN) {
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('admin-content').style.display = 'block';
             avviaFirebase();
-        } else { alert("Password errata"); }
+        } else {
+            alert("Password errata");
+        }
     }
 
     function avviaFirebase() {
         if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.database();
-            caricaDati();
+            try {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.database();
+                document.getElementById('status-db').innerText = "Stato: Connesso. In attesa dati...";
+                caricaDati();
+            } catch (e) {
+                alert("Errore Configurazione Firebase: " + e.message);
+                console.error(e);
+            }
         }
     }
 
     function caricaDati() {
-        // 1. Carica il menu nelle caselle
+        // 1. Carica Menu
         db.ref('menu').once('value', (s) => {
             const m = s.val();
             if(m && typeof m === 'object') {
@@ -106,57 +112,49 @@
             }
         });
 
-        // 2. Scarica Ordini
+        // 2. Scarica Ordini in tempo reale
         db.ref('ordini').on('value', (snapshot) => {
-            renderOrdini(snapshot.val());
+            const data = snapshot.val();
+            document.getElementById('status-db').innerText = "Stato: Dati ricevuti.";
+            renderOrdini(data);
         });
     }
 
     function renderOrdini(data) {
         const divAsporto = document.getElementById('lista-asporto');
         const divTavoli = document.getElementById('lista-tavoli');
-        
-        // Pulisce la schermata prima di riempirla
-        divAsporto.innerHTML = ""; 
-        divTavoli.innerHTML = "";
+        divAsporto.innerHTML = ""; divTavoli.innerHTML = "";
 
         if(!data) { 
             divAsporto.innerHTML = "<p>Nessun ordine presente.</p>"; 
             return; 
         }
 
-        let gruppiTavoli = {}; // Usiamo questa variabile, NON "groups"
+        let gruppiTavoli = {};
 
         // Trasformiamo i dati in array
         Object.values(data).forEach(ordine => {
-            
-            // 1. Controllo di sicurezza: se l'ordine è incompleto, lo saltiamo
+            // Se l'ordine è incompleto, lo saltiamo
             if (!ordine.items && !ordine.piatti) return; 
 
-            // 2. Generiamo la lista dei piatti (supporta sia il vecchio che il nuovo formato)
+            // Gestione compatibilità
             let piattiHTML = "";
             if(ordine.items) {
-                // Nuovo formato con quantità
                 piattiHTML = ordine.items.map(i => `<span>• <strong>${i.qty}x</strong> ${i.nome}</span>`).join("<br>");
             } else if (ordine.piatti) {
-                // Vecchio formato (solo testo)
                 piattiHTML = ordine.piatti.join(", "); 
             }
 
-            // 3. Creiamo la card HTML
             const htmlCard = `
                 <div class="card" style="border-left: 5px solid ${ordine.tipo === 'asporto' ? '#28a745' : '#007bff'}">
                     <strong>${ordine.cliente}</strong> (${ordine.orario})<br>
                     <div style="margin-top:5px; font-size:0.95em; color:#444;">${piattiHTML}</div>
                 </div>`;
 
-            // 4. Smistiamo l'ordine (Asporto o Tavolo)
             if(ordine.tipo === 'asporto') {
                 divAsporto.innerHTML += htmlCard;
             } else {
-                // CORREZIONE QUI SOTTO: Usiamo "gruppiTavoli", non "groups"
                 const nomeTav = ordine.tavolo || "Sconosciuto";
-                
                 if(!gruppiTavoli[nomeTav]) {
                     gruppiTavoli[nomeTav] = [];
                 }
@@ -164,27 +162,7 @@
             }
         });
 
-        // 5. Stampiamo a video i gruppi di tavoli
-        for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
-            divTavoli.innerHTML += `
-                <div class="tavolo-group">
-                    <div class="tavolo-title">TAVOLO: ${tavolo}</div>
-                    ${cards.join("")}
-                </div>`;
-        }
-    }
-
-        // Ora mostriamo i gruppi di tavoli a schermo
-        for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
-            divTavoli.innerHTML += `
-                <div class="tavolo-group">
-                    <div class="tavolo-title">TAVOLO: ${tavolo}</div>
-                    ${cards.join("")}
-                </div>`;
-        }
-    }
-
-        // Render Tavoli
+        // Mostra Tavoli
         for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
             divTavoli.innerHTML += `
                 <div class="tavolo-group">
@@ -202,14 +180,16 @@
             pizze: document.getElementById('menu-pizze').value
         };
         db.ref('menu').set(menuData);
-        alert("Menu aggiornato e diviso in sezioni!");
+        alert("Menu Pubblicato!");
     }
 
     function cancellaTutto() {
-        if(confirm("Cancelli tutto?")) db.ref('ordini').remove();
+        if(confirm("Sei sicuro di voler cancellare TUTTI gli ordini?")) {
+            db.ref('ordini').remove();
+            alert("Database pulito.");
+            location.reload();
+        }
     }
 </script>
 </body>
-
 </html>
-
