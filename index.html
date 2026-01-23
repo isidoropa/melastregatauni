@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordina Pranzo</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h1>Mensa Universitaria</h1>
+    <p style="text-align:center;">Seleziona i piatti e invia l'ordine.</p>
+
+    <div id="menu-container">
+        <p>Caricamento menu...</p>
+    </div>
+
+    <hr>
+    <h3>I tuoi dati</h3>
+    <input type="text" id="nome" placeholder="Il tuo Nome (es. Mario Rossi)" required>
+    
+    <label>Dove mangi?</label>
+    <select id="tipo-ordine" onchange="toggleTavolo()">
+        <option value="asporto">Asporto (Porto via)</option>
+        <option value="tavolo">Al Tavolo (Mangio qui)</option>
+    </select>
+
+    <div id="div-tavolo" class="hidden">
+        <input type="text" id="nome-tavolo" placeholder="NOME DEL TAVOLO (es. RUSSO)">
+        <small>Mettetevi d'accordo sul nome del tavolo con i colleghi!</small>
+    </div>
+
+    <label>Orario Ritiro/Pranzo</label>
+    <input type="time" id="orario" value="13:00">
+
+    <button onclick="inviaOrdine()">INVIA ORDINE</button>
+</div>
+
+<script>
+    // --- CONFIGURAZIONE FIREBASE ---
+    // Sostituisci questo blocco con quello copiato da Firebase
+    // --- CONFIGURAZIONE FIREBASE ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
+        authDomain: "melastregatauni.firebaseapp.com",
+        // Nota: questo URL è importante perché il tuo database è in Europa
+        databaseURL: "https://melastregatauni-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "melastregatauni",
+        storageBucket: "melastregatauni.firebasestorage.app",
+        messagingSenderId: "438544443213",
+        appId: "1:438544443213:web:f30f121f0642b8e8a9b904"
+    };
+    // -------------------------------
+    // -------------------------------
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // 1. Carica il Menu all'avvio
+    db.ref('menu').on('value', (snapshot) => {
+        const div = document.getElementById('menu-container');
+        div.innerHTML = "";
+        const data = snapshot.val();
+        
+        if(!data) {
+            div.innerHTML = "<p>Menu non ancora inserito.</p>";
+            return;
+        }
+
+        // Il menu è salvato come stringa lunga, lo dividiamo per righe
+        const piatti = data.split('\n');
+        piatti.forEach(piatto => {
+            if(piatto.trim() !== "") {
+                div.innerHTML += `
+                    <div class="item-row">
+                        <span>${piatto}</span>
+                        <input type="checkbox" class="scelta-piatto" value="${piatto}" style="width:20px;">
+                    </div>
+                `;
+            }
+        });
+    });
+
+    // 2. Gestisce la visibilità del campo "Nome Tavolo"
+    function toggleTavolo() {
+        const tipo = document.getElementById('tipo-ordine').value;
+        const div = document.getElementById('div-tavolo');
+        if(tipo === 'tavolo') div.classList.remove('hidden');
+        else div.classList.add('hidden');
+    }
+
+    // 3. Invia Ordine
+    function inviaOrdine() {
+        const nome = document.getElementById('nome').value;
+        const tipo = document.getElementById('tipo-ordine').value;
+        const tavolo = document.getElementById('nome-tavolo').value;
+        const orario = document.getElementById('orario').value;
+        
+        // Raccogli i piatti selezionati
+        const checkboxes = document.querySelectorAll('.scelta-piatto:checked');
+        let piattiScelti = [];
+        checkboxes.forEach((box) => piattiScelti.push(box.value));
+
+        if(nome === "" || piattiScelti.length === 0) {
+            alert("Inserisci il nome e seleziona almeno un piatto!");
+            return;
+        }
+        if(tipo === 'tavolo' && tavolo === "") {
+            alert("Se mangi al tavolo, devi specificare il Nome del Tavolo!");
+            return;
+        }
+
+        const ordine = {
+            cliente: nome,
+            piatti: piattiScelti,
+            tipo: tipo,
+            tavolo: (tipo === 'tavolo') ? tavolo.toUpperCase() : "N/A", // Convertiamo in maiuscolo per raggruppare meglio
+            orario: orario,
+            timestamp: Date.now()
+        };
+
+        db.ref('ordini').push(ordine)
+            .then(() => {
+                alert("Ordine inviato con successo!");
+                location.reload(); // Ricarica la pagina per pulire
+            })
+            .catch((error) => {
+                alert("Errore: " + error.message);
+            });
+    }
+</script>
+</body>
+</html>

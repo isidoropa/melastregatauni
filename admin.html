@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Ristorante</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+</head>
+<body>
+
+<div id="login-overlay">
+    <div id="login-box">
+        <h2>Area Riservata</h2>
+        <p>Inserisci la password per gestire il menu.</p>
+        <input type="password" id="admin-pass" placeholder="Password...">
+        <button onclick="checkLogin()">ENTRA</button>
+    </div>
+</div>
+
+<div class="container" id="admin-content" style="display:none;">
+    <h1>Pannello Admin</h1>
+    
+    <div style="background:#eee; padding:10px; border-radius:5px;">
+        <h3>1. Imposta Menu del Giorno</h3>
+        <textarea id="input-menu" rows="5" placeholder="Scrivi qui i piatti, uno per riga..." style="width:100%;"></textarea>
+        <button onclick="salvaMenu()">PUBBLICA MENU</button>
+    </div>
+
+    <hr>
+
+    <h2>Ordini Ricevuti</h2>
+    
+    <h3>🥡 ASPORTO</h3>
+    <div id="lista-asporto"></div>
+
+    <h3>🍽️ TAVOLI (Raggruppati)</h3>
+    <div id="lista-tavoli"></div>
+
+    <button class="delete-btn" onclick="cancellaTutto()">🗑️ CANCELLA TUTTI GLI ORDINI (FINE GIORNATA)</button>
+</div>
+
+<script>
+    // --- IMPOSTA QUI LA TUA PASSWORD ---
+    const PASSWORD_ADMIN = "pizza123"; // <--- CAMBIA QUESTA PASSWORD!
+    // -----------------------------------
+
+    function checkLogin() {
+        const input = document.getElementById('admin-pass').value;
+        if(input === PASSWORD_ADMIN) {
+            // Se la password è giusta, nascondi il login e mostra il contenuto
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('admin-content').style.display = 'block';
+            avviaFirebase(); // Carica i dati solo dopo il login
+        } else {
+            alert("Password sbagliata!");
+        }
+    }
+
+    // --- CONFIGURAZIONE FIREBASE ---
+    // INCOLLA QUI SOTTO LA TUA CONFIGURAZIONE (quella che hai preso prima)
+    // --- CONFIGURAZIONE FIREBASE ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
+        authDomain: "melastregatauni.firebaseapp.com",
+        // Nota: questo URL è importante perché il tuo database è in Europa
+        databaseURL: "https://melastregatauni-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "melastregatauni",
+        storageBucket: "melastregatauni.firebasestorage.app",
+        messagingSenderId: "438544443213",
+        appId: "1:438544443213:web:f30f121f0642b8e8a9b904"
+    };
+    // -------------------------------
+    // -------------------------------
+
+    let db; // Variabile globale per il database
+
+    function avviaFirebase() {
+        // Inizializza Firebase solo se non è già stato fatto
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            
+            caricaDati(); // Avvia il download dei dati
+        }
+    }
+
+    function caricaDati() {
+        // 1. Carica il menu attuale
+        db.ref('menu').once('value', (s) => {
+            if(s.val()) document.getElementById('input-menu').value = s.val();
+        });
+
+        // 2. Scarica e organizza gli ordini in tempo reale
+        db.ref('ordini').on('value', (snapshot) => {
+            const divAsporto = document.getElementById('lista-asporto');
+            const divTavoli = document.getElementById('lista-tavoli');
+            
+            divAsporto.innerHTML = "";
+            divTavoli.innerHTML = "";
+
+            const data = snapshot.val();
+            if(!data) {
+                divAsporto.innerHTML = "<p>Nessun ordine.</p>";
+                return;
+            }
+
+            let gruppiTavoli = {};
+
+            Object.keys(data).forEach(key => {
+                const ordine = data[key];
+                const htmlOrdine = `
+                    <div class="item-row">
+                        <div>
+                            <strong>${ordine.cliente}</strong> (${ordine.orario})<br>
+                            <em>${ordine.piatti.join(", ")}</em>
+                        </div>
+                    </div>`;
+
+                if(ordine.tipo === 'asporto') {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = htmlOrdine;
+                    divAsporto.appendChild(card);
+                } else {
+                    const nomeTav = ordine.tavolo;
+                    if(!gruppiTavoli[nomeTav]) {
+                        gruppiTavoli[nomeTav] = [];
+                    }
+                    gruppiTavoli[nomeTav].push(htmlOrdine);
+                }
+            });
+
+            for (const [nomeTavolo, listaOrdiniHTML] of Object.entries(gruppiTavoli)) {
+                const boxTavolo = document.createElement('div');
+                boxTavolo.className = 'tavolo-group';
+                let htmlContenuto = `<div class="tavolo-title">TAVOLO: ${nomeTavolo} <span style="float:right; font-size:0.8em">persone: ${listaOrdiniHTML.length}</span></div>`;
+                listaOrdiniHTML.forEach(html => { htmlContenuto += html; });
+                boxTavolo.innerHTML = htmlContenuto;
+                divTavoli.appendChild(boxTavolo);
+            }
+        });
+    }
+
+    function salvaMenu() {
+        const testo = document.getElementById('input-menu').value;
+        db.ref('menu').set(testo);
+        alert("Menu aggiornato!");
+    }
+
+    function cancellaTutto() {
+        if(confirm("Sei sicuro? Questo cancellerà tutti gli ordini di oggi.")) {
+            db.ref('ordini').remove();
+            alert("Database pulito.");
+        }
+    }
+</script>
+</body>
+</html>
