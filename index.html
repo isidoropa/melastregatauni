@@ -167,50 +167,67 @@
     }
 
     function inviaOrdine() {
-        // 1. Controllo Orario Attuale (Opzionale, scommenta per attivare)
-        /*
+        // --- ⛔️ 1. IL VIGILE DELL'ORARIO (Blocco Severo) ---
         const now = new Date();
-        const minutiTotali = now.getHours() * 60 + now.getMinutes();
-        if (minutiTotali < 9*60 || minutiTotali > 12*60+15) {
-           alert("⚠️ ORDINI CHIUSI! Riprova domani dalle 09:00.");
-           return;
-        }
-        */
+        const oraAttuale = now.getHours();
+        const minutiAttuali = now.getMinutes();
+        
+        // Trasformiamo tutto in "minuti totali" per fare un calcolo facile
+        // Esempio: le 09:00 sono 540 minuti dall'inizio della giornata
+        const minutiTotaliAdesso = (oraAttuale * 60) + minutiAttuali;
 
-        // 2. Recupero Dati
+        const APERTURA = 9 * 60;        // 09:00 (540 minuti)
+        const CHIUSURA = 12 * 60 + 15;  // 12:15 (735 minuti)
+
+        // Se è troppo presto OPPURE è troppo tardi...
+        if (minutiTotaliAdesso < APERTURA || minutiTotaliAdesso > CHIUSURA) {
+            // Formattiamo l'ora per mostrarla nell'avviso (es. 13:07 invece di 13:7)
+            const oraBella = oraAttuale + ":" + (minutiAttuali < 10 ? '0' : '') + minutiAttuali;
+            
+            alert("⛔️ ORDINI CHIUSI!\n\nSono le " + oraBella + ".\nPuoi inviare l'ordine solo tra le 09:00 e le 12:15.");
+            return; // <--- QUESTO "RETURN" BLOCCA TUTTO, L'ORDINE NON PARTE
+        }
+        // -----------------------------------------------------------
+
+
+        // --- 2. RECUPERO DATI ---
         const nome = document.getElementById('nome').value;
         const telefono = document.getElementById('telefono').value;
         const tipo = document.getElementById('tipo-ordine').value;
         const tavolo = document.getElementById('nome-tavolo').value;
         const orarioScelto = document.getElementById('orario').value;
 
-        // 3. Validazione
+        // --- 3. VALIDAZIONE DATI ---
         if(!nome) { alert("Inserisci il tuo nome!"); return; }
         if(!telefono) { alert("Inserisci il numero di telefono!"); return; }
         
         // Controllo se ha scelto un orario dalla tendina
         if(!orarioScelto) { 
-            alert("⚠️ Seleziona un orario per il pranzo dalla lista!"); 
+            alert("⚠️ Devi scegliere a che ora vuoi mangiare!"); 
             return; 
         }
 
         if(tipo === 'tavolo' && !tavolo) { alert("Inserisci il nome del tavolo!"); return; }
 
-        // 4. Costruzione Carrello
+        // --- 4. COSTRUZIONE CARRELLO ---
         let carrello = [];
+        
+        // Piatti normali
         document.querySelectorAll('.qty-piatto').forEach(input => {
             const q = parseInt(input.value);
             if(q > 0) carrello.push({ nome: input.dataset.nome, qty: q });
         });
+        
+        // Pizze
         document.querySelectorAll('.pizza-input-group').forEach(group => {
             const nomePizza = group.querySelector('.pizza-name').value;
             const qPizza = parseInt(group.querySelector('.pizza-qty').value);
             if(nomePizza.trim() !== "" && qPizza > 0) carrello.push({ nome: "PIZZA: " + nomePizza, qty: qPizza });
         });
 
-        if(carrello.length === 0) { alert("Seleziona almeno un piatto!"); return; }
+        if(carrello.length === 0) { alert("Il carrello è vuoto! Seleziona almeno un piatto."); return; }
 
-        // 5. Invio
+        // --- 5. INVIO A FIREBASE ---
         const ordine = {
             cliente: nome,
             telefono: telefono,
@@ -223,14 +240,15 @@
 
         db.ref('ordini').push(ordine)
             .then(() => {
-                alert("✅ Ordine Inviato! Ti aspettiamo alle " + orarioScelto);
-                location.reload();
+                alert("✅ Ordine Inviato con successo!\nTi aspettiamo per le " + orarioScelto);
+                location.reload(); // Ricarica la pagina per pulire tutto
             })
             .catch(err => alert("Errore invio: " + err.message));
     }
 </script>
 </body>
 </html>
+
 
 
 
