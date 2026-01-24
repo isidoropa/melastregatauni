@@ -16,10 +16,11 @@
     <img src="banner.jpg" alt="Mela Stregata" class="hero-image" onerror="this.style.display='none'">
 
     <div class="container">
-        <div id="avviso-orari" style="background:#fff3cd; color:#856404; padding:10px; font-size:0.9em; border-radius:5px; margin-bottom:15px; text-align:center;">
-            🕒 <strong>Orari di ordinazione:</strong> 09:00 - 12:15<br>
-            🍽️ <strong>Orari pranzo/ritiro:</strong> 12:00 - 14:15
-        </div>
+       <div id="avviso-orari" style="background:#fff3cd; color:#856404; padding:10px; font-size:0.9em; border-radius:5px; margin-bottom:15px; text-align:center; line-height: 1.6;">
+    🕒 <strong>Orari di ordinazione:</strong> 09:00 - 12:15<br>
+    🍽️ <strong>Orari pranzo/ritiro:</strong> 12:00 - 14:15<br>
+    📞 <strong>Per info:</strong> <a href="tel:+391234567890" style="color:#856404; text-decoration:underline; font-weight:bold;">+39 123 456 7890</a>
+</div>
         
         <div id="menu-loading" style="text-align:center; padding:20px; color:#666;">⏳ Caricamento menu in corso...</div>
 
@@ -61,7 +62,9 @@
         <h3>I tuoi dati</h3>
         
         <input type="text" id="nome" placeholder="Nome e Cognome" required>
-        <input type="tel" id="telefono" placeholder="Numero di Telefono" required>
+        <input type="tel" id="telefono" placeholder="Numero di Telefono (Solo numeri)" 
+       pattern="[0-9]*" inputmode="numeric" 
+       oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
         
         <label>Dove mangi?</label>
         <select id="tipo-ordine" onchange="toggleTavolo()">
@@ -248,6 +251,7 @@
 </script>
 </body>
 </html>
+
 
 
 
