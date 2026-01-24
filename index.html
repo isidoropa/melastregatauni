@@ -7,55 +7,58 @@
     <title>Ordina Pranzo</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
-<body>
-
-    <img src="banner.jpg" alt="Mela Stregata" class="hero-image" onerror="this.style.display='none'">
+<body style="padding-bottom: 80px;"> <img src="banner.jpg" alt="Mela Stregata" class="hero-image" onerror="this.style.display='none'">
 
     <div class="container">
-       <div id="avviso-orari" style="background:#fff3cd; color:#856404; padding:10px; font-size:0.9em; border-radius:5px; margin-bottom:15px; text-align:center; line-height: 1.6;">
-    🕒 <strong>Orari di ordinazione:</strong> 09:00 - 12:15<br>
-    🍽️ <strong>Orari pranzo/ritiro:</strong> 12:00 - 14:15<br>
-    📞 <strong>Per info:</strong> <a href="tel:+391234567890" style="color:#856404; text-decoration:underline; font-weight:bold;">+39 123 456 7890</a>
-</div>
+        
+        <div id="avviso-orari" style="background:#fff3cd; color:#856404; padding:15px; font-size:0.9em; border-radius:5px; margin-bottom:15px; text-align:center; line-height: 1.6;">
+            🕒 <strong>Ordini:</strong> 09:00 - 12:15 | 🍽️ <strong>Ritiro:</strong> 12:00 - 14:15<br>
+            📞 Info: <a href="tel:+391234567890" style="color:#856404; font-weight:bold;">+39 123 456 7890</a>
+            
+            <hr style="border-top:1px solid #eecd64; margin:10px 0;">
+            
+            <div style="font-weight:bold; font-size:1.1em; color:#d35400;">💰 LISTINO PREZZI</div>
+            <ul style="text-align:left; margin:5px 0 0 20px; padding:0;">
+                <li>Solo Primo o Solo Secondo: <strong>€ 5,00</strong></li>
+                <li>Solo Contorno: <strong>€ 3,00</strong></li>
+                <li>Menu Pizza: <strong>€ 7,00</strong></li>
+                <li style="color:#27ae60; background:#e8f5e9; padding:2px 5px; border-radius:4px;">
+                    ✨ <strong>OFFERTA COMPLETA:</strong> 1 Primo + 1 Secondo + 1 Contorno = <strong>€ 7,00</strong>
+                </li>
+            </ul>
+        </div>
         
         <div id="menu-loading" style="text-align:center; padding:20px; color:#666;">⏳ Caricamento menu in corso...</div>
 
         <div id="menu-completo" class="hidden">
-            
             <div id="sec-primi" class="menu-section">
-                <h3>🍝 Primi Piatti</h3>
+                <h3>🍝 Primi Piatti (€ 5,00)</h3>
                 <div class="content"></div>
             </div>
-
             <div id="sec-secondi" class="menu-section">
-                <h3>🍖 Secondi Piatti</h3>
+                <h3>🍖 Secondi Piatti (€ 5,00)</h3>
                 <div class="content"></div>
             </div>
-
             <div id="sec-contorni" class="menu-section">
-                <h3>🥗 Contorni</h3>
+                <h3>🥗 Contorni (€ 3,00)</h3>
                 <div class="content"></div>
             </div>
-
             <div id="sec-pizze" class="menu-section" style="border-left: 5px solid #ffc107;">
-                <h3 style="color: #d39e00;">🍕 Pizze</h3>
+                <h3 style="color: #d39e00;">🍕 Pizze (€ 7,00)</h3>
                 <p><strong>Disponibili oggi:</strong></p>
                 <div id="lista-pizze-display" style="margin-bottom:15px; font-style:italic;"></div>
-                
                 <p style="font-size:0.9em;">Scrivi la pizza che vuoi:</p>
                 <div id="custom-pizza-container">
                     <div class="pizza-input-group">
                         <input type="text" class="pizza-name" placeholder="Es. Margherita...">
-                        <input type="number" class="pizza-qty qty-input" value="1" min="1">
+                        <input type="number" class="pizza-qty qty-input" value="1" min="1" oninput="calcolaTotale()" onchange="calcolaTotale()">
                     </div>
                 </div>
                 <button class="add-btn" onclick="aggiungiRigaPizza()">+ Altra Pizza</button>
             </div>
-
         </div>
 
         <hr>
@@ -63,8 +66,8 @@
         
         <input type="text" id="nome" placeholder="Nome e Cognome" required>
         <input type="tel" id="telefono" placeholder="Numero di Telefono (Solo numeri)" 
-       pattern="[0-9]*" inputmode="numeric" 
-       oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+               pattern="[0-9]*" inputmode="numeric" 
+               oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
         
         <label>Dove mangi?</label>
         <select id="tipo-ordine" onchange="toggleTavolo()">
@@ -94,11 +97,14 @@
         <button onclick="inviaOrdine()" style="margin-top:20px; font-size:1.2em;">INVIA ORDINE</button>
     </div>
 
+    <div id="sticky-total" style="position:fixed; bottom:0; left:0; width:100%; background:#2d3436; color:white; padding:15px; text-align:center; font-size:1.3em; font-weight:bold; box-shadow:0 -5px 15px rgba(0,0,0,0.1); z-index:1000;">
+        TOTALE: <span id="display-totale" style="color:#00b894;">€ 0,00</span>
+    </div>
+
 <script>
     // ***********************************************************
     // 👇 INCOLLA LE TUE CHIAVI FIREBASE QUI SOTTO 👇
     // ***********************************************************
-    // --- CONFIGURAZIONE FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
         authDomain: "melastregatauni.firebaseapp.com",
@@ -111,38 +117,28 @@
     };
     // ***********************************************************
 
-    // Inizializza Firebase
-    if (!firebase.apps.length) {
-        try {
-            firebase.initializeApp(firebaseConfig);
-        } catch(e) {
-            alert("Errore Config: " + e.message);
-        }
-    }
+    if (!firebase.apps.length) { try { firebase.initializeApp(firebaseConfig); } catch(e) { alert("Errore Config: " + e.message); } }
     const db = firebase.database();
+    
+    // Variabile globale per salvare il totale
+    let totaleOrdineCalcolato = 0;
 
-    // SCARICAMENTO MENU
     db.ref('menu').on('value', (snapshot) => {
-        // Nasconde il caricamento e mostra il menu
         document.getElementById('menu-loading').style.display = 'none';
         document.getElementById('menu-completo').classList.remove('hidden');
-        
         const m = snapshot.val();
         if(!m) return;
-        
-        renderSection('sec-primi', m.primi);
-        renderSection('sec-secondi', m.secondi);
-        renderSection('sec-contorni', m.contorni);
-        
+        renderSection('sec-primi', m.primi, 'primo');
+        renderSection('sec-secondi', m.secondi, 'secondo');
+        renderSection('sec-contorni', m.contorni, 'contorno');
         const displayPizze = document.getElementById('lista-pizze-display');
         displayPizze.innerHTML = m.pizze ? m.pizze.replace(/\n/g, "<br>") : "Chiedi al personale.";
     }, (error) => {
-        // Se c'è un errore (es. permessi negati), lo dice
-        document.getElementById('menu-loading').innerHTML = 
-            "<strong style='color:red'>Errore caricamento: " + error.message + "</strong><br>Controlla le Regole Database.";
+        document.getElementById('menu-loading').innerHTML = "<strong style='color:red'>Errore caricamento.</strong>";
     });
 
-    function renderSection(sectionId, textData) {
+    // Passiamo il 'tipo' (primo, secondo, contorno) per i calcoli
+    function renderSection(sectionId, textData, tipoPiatto) {
         const container = document.querySelector(`#${sectionId} .content`);
         container.innerHTML = "";
         if(!textData) { container.innerHTML = "<em>Niente oggi.</em>"; return; }
@@ -151,7 +147,7 @@
             if(piatto.trim() !== "") {
                 const div = document.createElement('div');
                 div.className = 'piatto-row';
-                div.innerHTML = `<span>${piatto}</span><input type="number" class="qty-piatto" data-nome="${piatto}" value="0" min="0">`;
+                div.innerHTML = `<span>${piatto}</span><input type="number" class="qty-piatto" data-nome="${piatto}" data-tipo="${tipoPiatto}" value="0" min="0" oninput="calcolaTotale()" onchange="calcolaTotale()">`;
                 container.appendChild(div);
             }
         });
@@ -160,8 +156,9 @@
     function aggiungiRigaPizza() {
         const div = document.createElement('div');
         div.className = 'pizza-input-group';
-        div.innerHTML = `<input type="text" class="pizza-name" placeholder="Altra pizza..."><input type="number" class="pizza-qty qty-input" value="1" min="1">`;
+        div.innerHTML = `<input type="text" class="pizza-name" placeholder="Altra pizza..."><input type="number" class="pizza-qty qty-input" value="1" min="1" oninput="calcolaTotale()" onchange="calcolaTotale()">`;
         document.getElementById('custom-pizza-container').appendChild(div);
+        calcolaTotale();
     }
 
     function toggleTavolo() {
@@ -169,68 +166,98 @@
         document.getElementById('div-tavolo').style.display = (val === 'tavolo') ? 'block' : 'none';
     }
 
-    function inviaOrdine() {
-        // --- ⛔️ 1. IL VIGILE DELL'ORARIO (Blocco Severo) ---
-        const now = new Date();
-        const oraAttuale = now.getHours();
-        const minutiAttuali = now.getMinutes();
+    // --- 💰 IL CERVELLO DEI PREZZI ---
+    function calcolaTotale() {
+        let nPrimi = 0;
+        let nSecondi = 0;
+        let nContorni = 0;
+        let nPizze = 0;
+
+        // 1. Conta quanti piatti per tipo
+        document.querySelectorAll('.qty-piatto').forEach(input => {
+            const val = parseInt(input.value) || 0;
+            if (val > 0) {
+                const tipo = input.dataset.tipo;
+                if(tipo === 'primo') nPrimi += val;
+                if(tipo === 'secondo') nSecondi += val;
+                if(tipo === 'contorno') nContorni += val;
+            }
+        });
+
+        // 2. Conta pizze
+        document.querySelectorAll('.pizza-qty').forEach(input => {
+            const val = parseInt(input.value) || 0;
+            // Consideriamo pizza solo se c'è un nome scritto o se è quella di default attiva
+            const group = input.closest('.pizza-input-group');
+            const nome = group.querySelector('.pizza-name').value;
+            // Contiamo la pizza solo se ha una quantità > 0 (il nome è opzionale per il calcolo prezzo live, ma obbligatorio per invio)
+            if(val > 0) nPizze += val;
+        });
+
+        // 3. LOGICA OFFERTA (1P + 1S + 1C = 7€)
+        // Il numero di menu completi è il minimo comune tra primi, secondi e contorni
+        let nMenuCompleti = Math.min(nPrimi, nSecondi, nContorni);
+
+        // Calcoliamo i piatti "sciolti" rimasti fuori dall'offerta
+        let restantiPrimi = nPrimi - nMenuCompleti;
+        let restantiSecondi = nSecondi - nMenuCompleti;
+        let restantiContorni = nContorni - nMenuCompleti;
+
+        // 4. CALCOLO FINALE
+        let costoMenu = nMenuCompleti * 7.00;
+        let costoPrimiSecondiSciolti = (restantiPrimi + restantiSecondi) * 5.00;
+        let costoContorniSciolti = restantiContorni * 3.00;
+        let costoPizze = nPizze * 7.00;
+
+        let totale = costoMenu + costoPrimiSecondiSciolti + costoContorniSciolti + costoPizze;
         
-        // Trasformiamo tutto in "minuti totali" per fare un calcolo facile
-        // Esempio: le 09:00 sono 540 minuti dall'inizio della giornata
-        const minutiTotaliAdesso = (oraAttuale * 60) + minutiAttuali;
+        // Aggiorna variabile globale e display
+        totaleOrdineCalcolato = totale;
+        document.getElementById('display-totale').innerText = "€ " + totale.toFixed(2).replace('.', ',');
+    }
 
-        const APERTURA = 9 * 60;        // 09:00 (540 minuti)
-        const CHIUSURA = 12 * 60 + 15;  // 12:15 (735 minuti)
+    function inviaOrdine() {
+        // --- 1. IL VIGILE DELL'ORARIO ---
+        const now = new Date();
+        const minutiTotaliAdesso = (now.getHours() * 60) + now.getMinutes();
+        const APERTURA = 9 * 60;
+        const CHIUSURA = 12 * 60 + 15;
 
-        // Se è troppo presto OPPURE è troppo tardi...
+        // SCOMMENTA PER ATTIVARE BLOCCO ORARIO
+        /*
         if (minutiTotaliAdesso < APERTURA || minutiTotaliAdesso > CHIUSURA) {
-            // Formattiamo l'ora per mostrarla nell'avviso (es. 13:07 invece di 13:7)
-            const oraBella = oraAttuale + ":" + (minutiAttuali < 10 ? '0' : '') + minutiAttuali;
-            
-            alert("⛔️ ORDINI CHIUSI!\n\nSono le " + oraBella + ".\nPuoi inviare l'ordine solo tra le 09:00 e le 12:15.");
-            return; // <--- QUESTO "RETURN" BLOCCA TUTTO, L'ORDINE NON PARTE
+            alert("⛔️ ORDINI CHIUSI!\n\nPuoi inviare l'ordine solo tra le 09:00 e le 12:15.");
+            return;
         }
-        // -----------------------------------------------------------
+        */
 
-
-        // --- 2. RECUPERO DATI ---
         const nome = document.getElementById('nome').value;
         const telefono = document.getElementById('telefono').value;
         const tipo = document.getElementById('tipo-ordine').value;
         const tavolo = document.getElementById('nome-tavolo').value;
         const orarioScelto = document.getElementById('orario').value;
 
-        // --- 3. VALIDAZIONE DATI ---
         if(!nome) { alert("Inserisci il tuo nome!"); return; }
         if(!telefono) { alert("Inserisci il numero di telefono!"); return; }
-        
-        // Controllo se ha scelto un orario dalla tendina
-        if(!orarioScelto) { 
-            alert("⚠️ Devi scegliere a che ora vuoi mangiare!"); 
-            return; 
-        }
-
+        if(!orarioScelto) { alert("⚠️ Devi scegliere a che ora vuoi mangiare!"); return; }
         if(tipo === 'tavolo' && !tavolo) { alert("Inserisci il nome del tavolo!"); return; }
 
-        // --- 4. COSTRUZIONE CARRELLO ---
         let carrello = [];
-        
-        // Piatti normali
         document.querySelectorAll('.qty-piatto').forEach(input => {
             const q = parseInt(input.value);
             if(q > 0) carrello.push({ nome: input.dataset.nome, qty: q });
         });
-        
-        // Pizze
         document.querySelectorAll('.pizza-input-group').forEach(group => {
             const nomePizza = group.querySelector('.pizza-name').value;
             const qPizza = parseInt(group.querySelector('.pizza-qty').value);
             if(nomePizza.trim() !== "" && qPizza > 0) carrello.push({ nome: "PIZZA: " + nomePizza, qty: qPizza });
         });
 
-        if(carrello.length === 0) { alert("Il carrello è vuoto! Seleziona almeno un piatto."); return; }
+        if(carrello.length === 0) { alert("Il carrello è vuoto!"); return; }
 
-        // --- 5. INVIO A FIREBASE ---
+        // Ricalcoliamo il totale per sicurezza prima di inviare
+        calcolaTotale();
+
         const ordine = {
             cliente: nome,
             telefono: telefono,
@@ -238,15 +265,18 @@
             tipo: tipo,
             tavolo: (tipo === 'tavolo') ? tavolo.toUpperCase() : "N/A",
             orario: orarioScelto,
+            totale: totaleOrdineCalcolato, // <--- INVIAMO IL TOTALE
             timestamp: Date.now()
         };
 
-        db.ref('ordini').push(ordine)
-            .then(() => {
-                alert("✅ Ordine Inviato con successo!\nTi aspettiamo per le " + orarioScelto);
-                location.reload(); // Ricarica la pagina per pulire tutto
-            })
-            .catch(err => alert("Errore invio: " + err.message));
+        if(confirm(`Il totale è € ${totaleOrdineCalcolato.toFixed(2)}. Confermi l'ordine?`)) {
+            db.ref('ordini').push(ordine)
+                .then(() => {
+                    alert("✅ Ordine Inviato! Totale da pagare: € " + totaleOrdineCalcolato.toFixed(2));
+                    location.reload();
+                })
+                .catch(err => alert("Errore invio: " + err.message));
+        }
     }
 </script>
 </body>
