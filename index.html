@@ -73,7 +73,20 @@
     </div>
 
     <label>Orario Ritiro/Pranzo (tra le 12:00 e le 14:15)</label>
-    <input type="time" id="orario" value="12:00" min="12:00" max="14:15" required>
+    <label>Orario Ritiro/Pranzo</label>
+<select id="orario" required>
+    <option value="" disabled selected>-- Scegli Orario --</option>
+    <option value="12:00">12:00</option>
+    <option value="12:15">12:15</option>
+    <option value="12:30">12:30</option>
+    <option value="12:45">12:45</option>
+    <option value="13:00">13:00</option>
+    <option value="13:15">13:15</option>
+    <option value="13:30">13:30</option>
+    <option value="13:45">13:45</option>
+    <option value="14:00">14:00</option>
+    <option value="14:15">14:15</option>
+</select>
 
     <button onclick="inviaOrdine()" style="margin-top:20px; font-size:1.2em;">INVIA ORDINE</button>
 </div>
@@ -144,6 +157,14 @@
         // 9:00 = 540 minuti | 12:15 = 735 minuti
         const APERTURA = 9 * 60; 
         const CHIUSURA = 12 * 60 + 15;
+        const orarioScelto = document.getElementById('orario').value;
+
+    // 🔥 NUOVO CONTROLLO SEMPLIFICATO 🔥
+    // Controlla solo se l'utente ha selezionato qualcosa
+    if (!orarioScelto) {
+        alert("⚠️ Seleziona un orario per il pranzo!");
+        return;
+    }
 
         // Se vuoi testare il sito adesso e sono passate le 12:15, commenta le 4 righe qui sotto!
         if (minutiTotaliAdesso < APERTURA || minutiTotaliAdesso > CHIUSURA) {
@@ -203,6 +224,7 @@
 </script>
 </body>
 </html>
+
 
 
 
