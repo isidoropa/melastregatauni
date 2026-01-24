@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -6,92 +7,94 @@
     <title>Ordina Pranzo</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
 <body>
-<img src="banner.jpg" alt="Foto Mensa" class="hero-image" onerror="this.style.display='none'">
-<div class="container">
-    
 
-    
-    <div id="avviso-orari" style="background:#fff3cd; color:#856404; padding:10px; font-size:0.9em; border-radius:5px; margin-bottom:15px; text-align:center;">
-        🕒 <strong>Orari di ordinazione:</strong> 09:00 - 12:15<br>
-        🍽️ <strong>Orari pranzo/ritiro:</strong> 12:00 - 14:15
-    </div>
-    
-    <div id="menu-loading">Caricamento menu...</div>
+    <img src="banner.jpg" alt="Mela Stregata" class="hero-image" onerror="this.style.display='none'">
 
-    <div id="menu-completo" class="hidden">
+    <div class="container">
+        <div id="avviso-orari" style="background:#fff3cd; color:#856404; padding:10px; font-size:0.9em; border-radius:5px; margin-bottom:15px; text-align:center;">
+            🕒 <strong>Orari di ordinazione:</strong> 09:00 - 12:15<br>
+            🍽️ <strong>Orari pranzo/ritiro:</strong> 12:00 - 14:15
+        </div>
         
-        <div id="sec-primi" class="menu-section">
-            <h3>🍝 Primi Piatti</h3>
-            <div class="content"></div>
-        </div>
+        <div id="menu-loading" style="text-align:center; padding:20px; color:#666;">⏳ Caricamento menu in corso...</div>
 
-        <div id="sec-secondi" class="menu-section">
-            <h3>🍖 Secondi Piatti</h3>
-            <div class="content"></div>
-        </div>
-
-        <div id="sec-contorni" class="menu-section">
-            <h3>🥗 Contorni</h3>
-            <div class="content"></div>
-        </div>
-
-        <div id="sec-pizze" class="menu-section" style="border-color: #ffc107;">
-            <h3 style="border-color: #ffc107; color: #d39e00;">🍕 Pizze</h3>
-            <p><strong>Pizze disponibili oggi:</strong></p>
-            <div id="lista-pizze-display" class="lista-pizze-admin"></div>
+        <div id="menu-completo" class="hidden">
             
-            <p>Scrivi quale pizza vuoi:</p>
-            <div id="custom-pizza-container">
-                <div class="pizza-input-group">
-                    <input type="text" class="pizza-name" placeholder="Es. Margherita...">
-                    <input type="number" class="pizza-qty qty-input" value="1" min="1">
-                </div>
+            <div id="sec-primi" class="menu-section">
+                <h3>🍝 Primi Piatti</h3>
+                <div class="content"></div>
             </div>
-            <button class="add-btn" onclick="aggiungiRigaPizza()">+ Altra Pizza</button>
+
+            <div id="sec-secondi" class="menu-section">
+                <h3>🍖 Secondi Piatti</h3>
+                <div class="content"></div>
+            </div>
+
+            <div id="sec-contorni" class="menu-section">
+                <h3>🥗 Contorni</h3>
+                <div class="content"></div>
+            </div>
+
+            <div id="sec-pizze" class="menu-section" style="border-left: 5px solid #ffc107;">
+                <h3 style="color: #d39e00;">🍕 Pizze</h3>
+                <p><strong>Disponibili oggi:</strong></p>
+                <div id="lista-pizze-display" style="margin-bottom:15px; font-style:italic;"></div>
+                
+                <p style="font-size:0.9em;">Scrivi la pizza che vuoi:</p>
+                <div id="custom-pizza-container">
+                    <div class="pizza-input-group">
+                        <input type="text" class="pizza-name" placeholder="Es. Margherita...">
+                        <input type="number" class="pizza-qty qty-input" value="1" min="1">
+                    </div>
+                </div>
+                <button class="add-btn" onclick="aggiungiRigaPizza()">+ Altra Pizza</button>
+            </div>
+
         </div>
 
+        <hr>
+        <h3>I tuoi dati</h3>
+        
+        <input type="text" id="nome" placeholder="Nome e Cognome" required>
+        <input type="tel" id="telefono" placeholder="Numero di Telefono" required>
+        
+        <label>Dove mangi?</label>
+        <select id="tipo-ordine" onchange="toggleTavolo()">
+            <option value="asporto">Asporto (Porto via)</option>
+            <option value="tavolo">Al Tavolo (Mangio qui)</option>
+        </select>
+
+        <div id="div-tavolo" class="hidden">
+            <input type="text" id="nome-tavolo" placeholder="NOME TAVOLO (es. RUSSO)">
+        </div>
+
+        <label>Orario Ritiro/Pranzo</label>
+        <select id="orario" required>
+            <option value="" disabled selected>-- Scegli Orario --</option>
+            <option value="12:00">12:00</option>
+            <option value="12:15">12:15</option>
+            <option value="12:30">12:30</option>
+            <option value="12:45">12:45</option>
+            <option value="13:00">13:00</option>
+            <option value="13:15">13:15</option>
+            <option value="13:30">13:30</option>
+            <option value="13:45">13:45</option>
+            <option value="14:00">14:00</option>
+            <option value="14:15">14:15</option>
+        </select>
+
+        <button onclick="inviaOrdine()" style="margin-top:20px; font-size:1.2em;">INVIA ORDINE</button>
     </div>
-
-    <hr>
-    <h3>I tuoi dati</h3>
-    
-    <input type="text" id="nome" placeholder="Il tuo Nome e Cognome" required>
-    <input type="tel" id="telefono" placeholder="Numero di Telefono (Obbligatorio)" required>
-    
-    <label>Dove mangi?</label>
-    <select id="tipo-ordine" onchange="toggleTavolo()">
-        <option value="asporto">Asporto (Porto via)</option>
-        <option value="tavolo">Al Tavolo (Mangio qui)</option>
-    </select>
-
-    <div id="div-tavolo" class="hidden">
-        <input type="text" id="nome-tavolo" placeholder="NOME TAVOLO (es. RUSSO)">
-    </div>
-
-    <label>Orario Ritiro/Pranzo (tra le 12:00 e le 14:15)</label>
-    <label>Orario Ritiro/Pranzo</label>
-<select id="orario" required>
-    <option value="" disabled selected>-- Scegli Orario --</option>
-    <option value="12:00">12:00</option>
-    <option value="12:15">12:15</option>
-    <option value="12:30">12:30</option>
-    <option value="12:45">12:45</option>
-    <option value="13:00">13:00</option>
-    <option value="13:15">13:15</option>
-    <option value="13:30">13:30</option>
-    <option value="13:45">13:45</option>
-    <option value="14:00">14:00</option>
-    <option value="14:15">14:15</option>
-</select>
-
-    <button onclick="inviaOrdine()" style="margin-top:20px; font-size:1.2em;">INVIA ORDINE</button>
-</div>
 
 <script>
+    // ***********************************************************
+    // 👇 INCOLLA LE TUE CHIAVI FIREBASE QUI SOTTO 👇
+    // ***********************************************************
     // --- CONFIGURAZIONE FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
@@ -103,21 +106,37 @@
         messagingSenderId: "438544443213",
         appId: "1:438544443213:web:f30f121f0642b8e8a9b904"
     };
-    // -------------------------------
+    // ***********************************************************
 
-    firebase.initializeApp(firebaseConfig);
+    // Inizializza Firebase
+    if (!firebase.apps.length) {
+        try {
+            firebase.initializeApp(firebaseConfig);
+        } catch(e) {
+            alert("Errore Config: " + e.message);
+        }
+    }
     const db = firebase.database();
 
+    // SCARICAMENTO MENU
     db.ref('menu').on('value', (snapshot) => {
+        // Nasconde il caricamento e mostra il menu
         document.getElementById('menu-loading').style.display = 'none';
         document.getElementById('menu-completo').classList.remove('hidden');
+        
         const m = snapshot.val();
         if(!m) return;
+        
         renderSection('sec-primi', m.primi);
         renderSection('sec-secondi', m.secondi);
         renderSection('sec-contorni', m.contorni);
+        
         const displayPizze = document.getElementById('lista-pizze-display');
-        displayPizze.innerHTML = m.pizze ? m.pizze.replace(/\n/g, "<br>") : "Nessuna pizza oggi.";
+        displayPizze.innerHTML = m.pizze ? m.pizze.replace(/\n/g, "<br>") : "Chiedi al personale.";
+    }, (error) => {
+        // Se c'è un errore (es. permessi negati), lo dice
+        document.getElementById('menu-loading').innerHTML = 
+            "<strong style='color:red'>Errore caricamento: " + error.message + "</strong><br>Controlla le Regole Database.";
     });
 
     function renderSection(sectionId, textData) {
@@ -148,49 +167,36 @@
     }
 
     function inviaOrdine() {
-        // --- 1. CONTROLLO ORARIO (IL VIGILE) ---
+        // 1. Controllo Orario Attuale (Opzionale, scommenta per attivare)
+        /*
         const now = new Date();
-        const oraAttuale = now.getHours();
-        const minutiAttuali = now.getMinutes();
-        const minutiTotaliAdesso = oraAttuale * 60 + minutiAttuali;
-
-        // 9:00 = 540 minuti | 12:15 = 735 minuti
-        const APERTURA = 9 * 60; 
-        const CHIUSURA = 12 * 60 + 15;
-        const orarioScelto = document.getElementById('orario').value;
-
-    // 🔥 NUOVO CONTROLLO SEMPLIFICATO 🔥
-    // Controlla solo se l'utente ha selezionato qualcosa
-    if (!orarioScelto) {
-        alert("⚠️ Seleziona un orario per il pranzo!");
-        return;
-    }
-
-        // Se vuoi testare il sito adesso e sono passate le 12:15, commenta le 4 righe qui sotto!
-        if (minutiTotaliAdesso < APERTURA || minutiTotaliAdesso > CHIUSURA) {
-            alert("⚠️ GLI ORDINI SONO CHIUSI!\n\nPuoi inviare l'ordine solo tra le 09:00 e le 12:15.");
-            return;
+        const minutiTotali = now.getHours() * 60 + now.getMinutes();
+        if (minutiTotali < 9*60 || minutiTotali > 12*60+15) {
+           alert("⚠️ ORDINI CHIUSI! Riprova domani dalle 09:00.");
+           return;
         }
-        // ----------------------------------------
+        */
 
+        // 2. Recupero Dati
         const nome = document.getElementById('nome').value;
         const telefono = document.getElementById('telefono').value;
         const tipo = document.getElementById('tipo-ordine').value;
         const tavolo = document.getElementById('nome-tavolo').value;
         const orarioScelto = document.getElementById('orario').value;
 
-        // Validazione Dati
-        if(!nome) { alert("Inserisci il nome!"); return; }
+        // 3. Validazione
+        if(!nome) { alert("Inserisci il tuo nome!"); return; }
         if(!telefono) { alert("Inserisci il numero di telefono!"); return; }
         
-        // Controllo validità orario pranzo (12:00 - 14:15)
-        if(orarioScelto < "12:00" || orarioScelto > "14:15") {
-            alert("L'orario del pranzo deve essere compreso tra le 12:00 e le 14:15.");
-            return;
+        // Controllo se ha scelto un orario dalla tendina
+        if(!orarioScelto) { 
+            alert("⚠️ Seleziona un orario per il pranzo dalla lista!"); 
+            return; 
         }
 
         if(tipo === 'tavolo' && !tavolo) { alert("Inserisci il nome del tavolo!"); return; }
 
+        // 4. Costruzione Carrello
         let carrello = [];
         document.querySelectorAll('.qty-piatto').forEach(input => {
             const q = parseInt(input.value);
@@ -204,9 +210,10 @@
 
         if(carrello.length === 0) { alert("Seleziona almeno un piatto!"); return; }
 
+        // 5. Invio
         const ordine = {
             cliente: nome,
-            telefono: telefono, // Aggiunto telefono
+            telefono: telefono,
             items: carrello,
             tipo: tipo,
             tavolo: (tipo === 'tavolo') ? tavolo.toUpperCase() : "N/A",
@@ -216,15 +223,14 @@
 
         db.ref('ordini').push(ordine)
             .then(() => {
-                alert("Ordine Inviato con successo!");
+                alert("✅ Ordine Inviato! Ti aspettiamo alle " + orarioScelto);
                 location.reload();
             })
-            .catch(err => alert("Errore: " + err.message));
+            .catch(err => alert("Errore invio: " + err.message));
     }
 </script>
 </body>
 </html>
-
 
 
 
