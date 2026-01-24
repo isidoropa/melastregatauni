@@ -1,14 +1,14 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Ristorante</title>
-    
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script> <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <style>
         :root { --primary: #ff6b6b; --bg: #416058; --dark: #2d3436; --light: #fff; }
@@ -29,7 +29,7 @@
         .card { background: #fff; padding: 15px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .tavolo-group { background: #fffdf2; border: 1px solid #ffeeba; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
         
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(65, 96, 88, 0.95); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         #login-box { background: white; padding: 40px; border-radius: 15px; width: 300px; text-align: center; }
         .error-msg { color: red; font-size: 0.9em; margin-top: 10px; display: none; }
     </style>
@@ -39,7 +39,7 @@
 <div id="login-overlay">
     <div id="login-box">
         <h2 style="color:var(--primary)">Area Admin</h2>
-        <input type="email" id="email" placeholder="Email Admin (es. admin@mensa.it)">
+        <input type="email" id="email" placeholder="Email Admin">
         <input type="password" id="password" placeholder="Password">
         <button onclick="login()">ENTRA</button>
         <div id="login-error" class="error-msg">Credenziali sbagliate!</div>
@@ -92,22 +92,16 @@
     };
     // ***********************************************************
 
-    // Inizializza Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const auth = firebase.auth();
 
-    // --- GESTIONE LOGIN (SICURO) ---
-    
-    // Controlla se l'utente è già loggato (così se ricarichi la pagina non devi rimettere la pass)
     auth.onAuthStateChanged((user) => {
         if (user) {
-            // Utente loggato: nascondi login, mostra contenuto
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('admin-content').style.display = 'block';
-            caricaDati(); // Avvia il download dei dati
+            caricaDati();
         } else {
-            // Utente non loggato: mostra login
             document.getElementById('login-overlay').style.display = 'flex';
             document.getElementById('admin-content').style.display = 'none';
         }
@@ -116,32 +110,17 @@
     function login() {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
-        const errorMsg = document.getElementById('login-error');
-
-        auth.signInWithEmailAndPassword(email, pass)
-            .then((userCredential) => {
-                // Login riuscito, onAuthStateChanged farà il resto
-                errorMsg.style.display = 'none';
-            })
-            .catch((error) => {
-                errorMsg.innerText = "Errore: " + error.message;
-                errorMsg.style.display = 'block';
-            });
-    }
-
-    function logout() {
-        auth.signOut().then(() => {
-            location.reload();
+        auth.signInWithEmailAndPassword(email, pass).catch((error) => {
+            document.getElementById('login-error').style.display = 'block';
         });
     }
 
-    // --- GESTIONE DATI (Uguale a prima) ---
+    function logout() { auth.signOut().then(() => location.reload()); }
 
     function caricaDati() {
-        // Carica Menu
         db.ref('menu').once('value', (s) => {
             const m = s.val();
-            if(m && typeof m === 'object') {
+            if(m) {
                 document.getElementById('menu-primi').value = m.primi || "";
                 document.getElementById('menu-secondi').value = m.secondi || "";
                 document.getElementById('menu-contorni').value = m.contorni || "";
@@ -149,7 +128,6 @@
             }
         });
 
-        // Ascolta Ordini
         db.ref('ordini').on('value', (snapshot) => {
             document.getElementById('status-db').innerText = "Dati aggiornati in tempo reale.";
             renderOrdini(snapshot.val());
@@ -161,10 +139,7 @@
         const divTavoli = document.getElementById('lista-tavoli');
         divAsporto.innerHTML = ""; divTavoli.innerHTML = "";
 
-        if(!data) { 
-            divAsporto.innerHTML = "<p style='color:#999; text-align:center;'>Nessun ordine.</p>"; 
-            return; 
-        }
+        if(!data) { divAsporto.innerHTML = "<p style='color:#999; text-align:center;'>Nessun ordine.</p>"; return; }
 
         let gruppiTavoli = {};
 
@@ -178,15 +153,19 @@
                 piattiHTML = ordine.piatti.join(", "); 
             }
 
-            const telefonoHTML = ordine.telefono 
-                ? `<div style="margin-top:5px; font-size:0.9em;">📞 <a href="tel:${ordine.telefono}" style="font-weight:bold; color:#54a0ff;">${ordine.telefono}</a></div>` 
+            const telefonoHTML = ordine.telefono ? `<div style="margin-top:5px; font-size:0.9em;">📞 <a href="tel:${ordine.telefono}" style="font-weight:bold; color:#54a0ff;">${ordine.telefono}</a></div>` : "";
+            
+            // --- QUI MOSTRIAMO IL TOTALE ---
+            const totaleHTML = ordine.totale 
+                ? `<div style="margin-top:10px; font-size:1.1em; color:#27ae60; border-top:1px solid #eee; padding-top:5px;">💰 <strong>Totale: € ${parseFloat(ordine.totale).toFixed(2)}</strong></div>` 
                 : "";
 
             const htmlCard = `
                 <div class="card" style="border-left: 5px solid ${ordine.tipo === 'asporto' ? '#27ae60' : '#2980b9'} !important;">
                     <div style="font-size:1.1em;"><strong>${ordine.cliente}</strong> <span style="font-size:0.9em; color:#666;">(${ordine.orario})</span></div>
                     ${telefonoHTML}
-                    <div style="margin-top:8px; padding-top:8px; border-top:1px dashed #eee; color:#444;">${piattiHTML}</div>
+                    <div style="margin-top:8px; color:#444;">${piattiHTML}</div>
+                    ${totaleHTML}
                 </div>`;
 
             if(ordine.tipo === 'asporto') {
@@ -208,13 +187,12 @@
     }
 
     function salvaMenu() {
-        const menuData = {
+        db.ref('menu').set({
             primi: document.getElementById('menu-primi').value,
             secondi: document.getElementById('menu-secondi').value,
             contorni: document.getElementById('menu-contorni').value,
             pizze: document.getElementById('menu-pizze').value
-        };
-        db.ref('menu').set(menuData);
+        });
         alert("Menu Pubblicato!");
     }
 
@@ -227,5 +205,4 @@
 </script>
 </body>
 </html>
-
 
