@@ -119,7 +119,7 @@
         <label style="margin-top:20px; display:block;">Note per la cucina (Opzionale)</label>
         <textarea id="note-ordine" rows="3" placeholder="Es. Niente cipolla, allergie, citofonare Rossi..." style="width:100%; border:2px solid #ddd; border-radius:8px; padding:10px;"></textarea>
 
-        <button onclick="inviaOrdine()" style="margin-top:20px; font-size:1.2em;">INVIA ORDINE</button>
+        <button id="btn-invia" onclick="inviaOrdine()" style="margin-top:20px; font-size:1.2em;">INVIA ORDINE</button>
     </div>
 
     <div id="sticky-total" style="position:fixed; bottom:0; left:0; width:100%; background:#2d3436; color:white; padding:15px; text-align:center; font-size:1.3em; font-weight:bold; box-shadow:0 -5px 15px rgba(0,0,0,0.1); z-index:1000;">
@@ -130,7 +130,7 @@
     // ***********************************************************
     // 👇 INCOLLA LE TUE CHIAVI FIREBASE QUI SOTTO 👇
     // ***********************************************************
-     const firebaseConfig = {
+    const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
         authDomain: "melastregatauni.firebaseapp.com",
         // Nota: questo URL è importante perché il tuo database è in Europa
@@ -148,7 +148,16 @@
     let totaleOrdineCalcolato = 0;
     let carrelloPizze = [];
 
-    // --- CARICA DATI UTENTE SALVATI (FEATURE #3) ---
+    // --- PROTEZIONE USCITA (FEATURE RICHIESTA) ---
+    window.onbeforeunload = function() {
+        let hasItems = carrelloPizze.length > 0;
+        document.querySelectorAll('.qty-piatto').forEach(i => { if(i.value > 0) hasItems = true; });
+        
+        if (hasItems) {
+            return "Hai un ordine in corso. Sei sicuro di voler uscire?";
+        }
+    };
+
     window.onload = function() {
         const savedNome = localStorage.getItem('nomeUtente');
         const savedTel = localStorage.getItem('telUtente');
@@ -168,14 +177,12 @@
         
         document.getElementById('lista-pizze-display').innerHTML = m.pizze ? m.pizze.replace(/\n/g, "<br>") : "Chiedi al personale.";
 
-        // --- GESTIONE PIZZE ESAURITE (FEATURE #4) ---
         const pizzaActive = document.getElementById('pizza-active-area');
         const pizzaMsg = document.getElementById('pizza-soldout-msg');
         
         if (m.pizze_esaurite) {
             pizzaActive.classList.add('hidden');
             pizzaMsg.classList.remove('hidden');
-            // Se c'erano pizze nel carrello, puliscile
             carrelloPizze = [];
             renderPizzeAggiunte();
             calcolaTotale();
@@ -199,7 +206,6 @@
                 const div = document.createElement('div');
                 div.className = 'piatto-row';
                 
-                // --- CONTROLLO SOLD OUT [X] (FEATURE #4) ---
                 const isSoldOut = piatto.trim().startsWith('[X]');
                 let cleanName = piatto;
                 let inputHtml = `<input type="number" class="qty-piatto" data-nome="${piatto}" data-tipo="${tipoPiatto}" value="0" min="0" oninput="calcolaTotale()" onchange="calcolaTotale()">`;
@@ -207,7 +213,7 @@
                 if (isSoldOut) {
                     div.classList.add('sold-out-row');
                     cleanName = piatto.replace('[X]', '').trim() + " (ESAURITO)";
-                    inputHtml = `<input type="number" disabled value="0">`; // Input disattivato
+                    inputHtml = `<input type="number" disabled value="0">`;
                 }
 
                 div.innerHTML = `<span>${cleanName}</span>${inputHtml}`;
@@ -261,7 +267,7 @@
         let nPrimi = 0, nSecondi = 0, nContorni = 0, nInsalatone = 0, nPizze = 0;
         
         document.querySelectorAll('.qty-piatto').forEach(input => {
-            if (!input.disabled) { // Conta solo se non è sold out
+            if (!input.disabled) {
                 const val = parseInt(input.value) || 0;
                 if (val > 0) {
                     const tipo = input.dataset.tipo;
@@ -322,10 +328,8 @@
 
         if(carrello.length === 0) { alert("Il carrello è vuoto!"); return; }
 
-        // --- SALVA DATI UTENTE (FEATURE #3) ---
         localStorage.setItem('nomeUtente', nome);
         localStorage.setItem('telUtente', telefono);
-
         calcolaTotale();
 
         const ordine = {
@@ -342,12 +346,28 @@
         };
 
         if(confirm(`Il totale è € ${totaleOrdineCalcolato.toFixed(2)}. Confermi l'ordine?`)) {
+            
+            // --- ANTI-DOPPIO CLICK (FEATURE RICHIESTA) ---
+            const btnInvio = document.getElementById('btn-invia');
+            btnInvio.disabled = true;
+            btnInvio.innerText = "⏳ Invio in corso...";
+            btnInvio.style.background = "#ccc";
+
+            // Disattivo protezione uscita perché stiamo inviando
+            window.onbeforeunload = null;
+
             db.ref('ordini').push(ordine)
                 .then(() => {
                     alert("✅ Ordine Inviato!");
                     location.reload();
                 })
-                .catch(err => alert("Errore invio: " + err.message));
+                .catch(err => {
+                    alert("Errore invio: " + err.message);
+                    // Riattivo bottone se fallisce
+                    btnInvio.disabled = false;
+                    btnInvio.innerText = "INVIA ORDINE";
+                    btnInvio.style.background = "";
+                });
         }
     }
 </script>
