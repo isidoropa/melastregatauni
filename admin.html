@@ -14,9 +14,9 @@
             --primary: #2c3e50;
             --accent: #27ae60;
             --danger: #e74c3c;
+            --warning: #f39c12;
             --purple: #9b59b6;
             --brand-green: #416058;
-            --bg: #416058;
             --surface: #ffffff;
             --border: #e2e6ea;
         }
@@ -28,13 +28,13 @@
         h1 { margin-bottom: 20px; }
         h2 { font-size: 1.2em; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px; margin-top: 30px; }
 
-        /* Box Bianchi */
-        .admin-panel, .menu-section, .card, #login-box, #bill-box {
+        /* BOX BIANCHI */
+        .admin-panel, .menu-section, .card, #login-box, #bill-box, #edit-box {
             background: var(--surface); padding: 25px; border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; border: none; color: #2d3436;
         }
 
-        .admin-panel h2, #login-box h2, #bill-box h3 { color: var(--primary); border-bottom: 2px solid var(--border); }
+        .admin-panel h2, #login-box h2, #bill-box h3, #edit-box h3 { color: var(--primary); border-bottom: 2px solid var(--border); }
         .menu-section h3 { color: var(--primary); }
 
         input, textarea { width: 100%; padding: 12px; border: 1px solid #dfe6e9; border-radius: 8px; font-family: inherit; margin-bottom: 10px; box-sizing: border-box; background: #f9f9f9; }
@@ -54,13 +54,25 @@
         
         #revenue-box { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); color: white; padding: 20px; border-radius: 12px; text-align: center; font-size: 1.3em; box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3); margin-bottom: 20px; border: none; }
 
-        .card { position: relative; border-left: 5px solid #bdc3c7; transition: all 0.5s; }
+        /* CARD STYLES */
+        .card { position: relative; border-left: 5px solid #bdc3c7; transition: all 0.3s; }
         .card-fresh { border-left-color: #f1c40f; background: #fffdf0; animation: pulse 2s infinite; }
-        .card-old { opacity: 0.6; }
+        
+        .card-completed { opacity: 0.5; background: #f0f0f0; border-left-color: #7f8c8d !important; }
+        .card-completed div { text-decoration: line-through; }
+        .card-completed .btn-check { background: #7f8c8d; }
+
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(241, 196, 15, 0); } 100% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0); } }
 
-        .badge-new { position: absolute; top: 10px; right: 40px; background: #e74c3c; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.7em; font-weight: bold; }
-        .btn-delete-single { position: absolute; top: 10px; right: 10px; background: #fee; color: #c0392b; width: 24px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .badge-new { position: absolute; top: 10px; right: 120px; background: #e74c3c; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.7em; font-weight: bold; }
+        
+        /* TASTI SULLA CARD */
+        .card-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; }
+        .action-icon { width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); margin:0; padding:0; }
+        
+        .btn-delete-single { background: #fee; color: #c0392b; }
+        .btn-check { background: #e8f5e9; color: #27ae60; font-size: 1.2em; }
+        .btn-edit { background: #fff8e1; color: #f39c12; font-size: 1.1em; } /* Matita Gialla */
 
         .tavolo-group { border: 2px dashed #dfe6e9; background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 20px; color: #2d3436; }
         .tavolo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 8px; flex-wrap: wrap; gap: 10px;}
@@ -77,11 +89,17 @@
         .led-off { background: #e74c3c; }
 
         /* OVERLAYS */
-        #login-overlay, #bill-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; justify-content: center; align-items: center; }
-        #login-box, #bill-box { background: white; padding: 40px; border-radius: 15px; width: 90%; max-width: 450px; position: relative; color: #2d3436; max-height: 90vh; overflow-y: auto; }
+        #login-overlay, #bill-overlay, #edit-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; justify-content: center; align-items: center; }
+        #login-box, #bill-box, #edit-box { background: white; padding: 40px; border-radius: 15px; width: 90%; max-width: 500px; position: relative; color: #2d3436; max-height: 90vh; overflow-y: auto; }
         
         .bill-item { display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding: 8px 0; font-size: 0.95em; }
         .bill-total-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2em; margin-top: 15px; border-top: 2px solid #2d3436; padding-top: 10px; color: var(--accent); }
+
+        /* EDIT ROWS */
+        .edit-item-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .edit-item-qty { width: 60px; text-align: center; }
+        .edit-item-name { flex: 1; }
+        .btn-remove-item { background: #e74c3c; color: white; width: 30px; padding: 0; margin: 0; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -100,14 +118,27 @@
 
 <div id="bill-overlay" style="display:none;">
     <div id="bill-box">
-        <button onclick="document.getElementById('bill-overlay').style.display='none'" style="position:absolute; top:10px; right:10px; width:30px; padding:5px; background:none; font-size:1.5em; color:#333; border:none; margin:0;">&times;</button>
+        <button onclick="document.getElementById('bill-overlay').style.display='none'" style="position:absolute; top:10px; right:10px; width:30px; padding:5px; background:none; font-size:1.5em; color:#333; border:none; margin:0; cursor:pointer;">&times;</button>
         <h3 id="bill-title">Riepilogo Tavolo</h3>
         <div id="bill-content" style="margin-top:20px;"></div>
         <div class="bill-total-row">
-            <span>TOTALE TAVOLO:</span>
+            <span>TOTALE CONTO:</span>
             <span id="bill-total-value">€ 0,00</span>
         </div>
         <button class="print-btn" onclick="stampaConto()" style="background:#2d3436; margin-top:20px;">🖨️ STAMPA CONTO</button>
+    </div>
+</div>
+
+<div id="edit-overlay" style="display:none;">
+    <div id="edit-box">
+        <button onclick="document.getElementById('edit-overlay').style.display='none'" style="position:absolute; top:10px; right:10px; width:30px; padding:5px; background:none; font-size:1.5em; color:#333; border:none; margin:0; cursor:pointer;">&times;</button>
+        <h3>✏️ Modifica Ordine</h3>
+        <div id="edit-items-container" style="margin-top:20px;"></div>
+        
+        <label style="font-weight:bold; margin-top:20px; display:block;">Prezzo Totale (€):</label>
+        <input type="number" id="edit-total-price" step="0.50" style="font-size:1.2em; color:#27ae60; font-weight:bold;">
+        
+        <button class="btn-success" onclick="salvaModifica()">💾 SALVA MODIFICHE</button>
     </div>
 </div>
 
@@ -167,10 +198,11 @@
     const db = firebase.database();
     const auth = firebase.auth();
     
-    let globalOrdersByTable = {}; // Contiene gli ordini raggruppati per tavolo
+    let globalOrdersByTable = {}; 
     let globalRawData = {};
     let lastOrderCount = 0;
     let isFirstLoad = true;
+    let currentEditKey = null; // Per la modifica
 
     // --- AUDIO ---
     let audioCtx = null;
@@ -231,7 +263,7 @@
     function renderOrdini(data) {
         const divAsporto = document.getElementById('lista-asporto'); const divTavoli = document.getElementById('lista-tavoli');
         divAsporto.innerHTML = ""; divTavoli.innerHTML = ""; 
-        globalOrdersByTable = {}; // Reset aggregazione tavoli
+        globalOrdersByTable = {}; 
         globalRawData = data || {};
 
         if(!data) { 
@@ -251,11 +283,8 @@
                 if (!contaPersonePerTavolo[nomeTav]) { contaPersonePerTavolo[nomeTav] = 0; }
                 contaPersonePerTavolo[nomeTav] += (ordine.coperti || 0);
                 
-                // Salva per aggregazione conto
                 if (!globalOrdersByTable[nomeTav]) { globalOrdersByTable[nomeTav] = []; }
                 globalOrdersByTable[nomeTav].push(ordine);
-                
-                // Raggruppamento visivo
                 if(!gruppiTavoli[nomeTav]) { gruppiTavoli[nomeTav] = []; }
             }
 
@@ -266,12 +295,25 @@
             const noteHTML = ordine.note ? `<div style="background:#fff3cd; color:#856404; padding:5px; border-radius:4px; font-size:0.85em; margin-top:5px;">⚠️ ${ordine.note}</div>` : "";
             const ordineString = encodeURIComponent(JSON.stringify(ordine));
             const diffMinutes = (now - (ordine.timestamp || 0)) / 1000 / 60;
-            let cardClass = "card"; let badgeHTML = "";
-            if (diffMinutes < 5) { cardClass += " card-fresh"; badgeHTML = '<div class="badge-new">NEW</div>'; } else if (diffMinutes > 30) { cardClass += " card-old"; }
+            
+            let cardClass = "card"; 
+            let badgeHTML = "";
+            let btnCheckText = "✔";
+            
+            if (ordine.completed) {
+                cardClass += " card-completed";
+            } else {
+                if (diffMinutes < 5) { cardClass += " card-fresh"; badgeHTML = '<div class="badge-new">NEW</div>'; } 
+                else if (diffMinutes > 30) { cardClass += " card-old"; }
+            }
 
             const htmlCard = `
                 <div class="${cardClass}" style="border-left-color: ${ordine.tipo === 'asporto' ? '#27ae60' : '#2980b9'};">
-                    <button class="btn-delete-single" onclick="eliminaSingolo('${key}')">&times;</button>
+                    <div class="card-actions">
+                        <button class="action-icon btn-edit" onclick="apriModifica('${key}')">✏️</button>
+                        <button class="action-icon btn-check" onclick="toggleCompletato('${key}', ${ordine.completed})">${btnCheckText}</button>
+                        <button class="action-icon btn-delete-single" onclick="eliminaSingolo('${key}')">&times;</button>
+                    </div>
                     ${badgeHTML}
                     <div style="font-size:1.05em; font-weight:bold;">${ordine.cliente} <span style="font-weight:normal; font-size:0.8em; color:#7f8c8d;">(${ordine.orario})</span> ${copertiOrdine}</div>
                     ${telefonoHTML}
@@ -290,7 +332,6 @@
 
         for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
             const totalePersone = contaPersonePerTavolo[tavolo] || 0;
-            // Tasto "CONTO TAVOLO" invece di Cronologia
             divTavoli.innerHTML += `
                 <div class="tavolo-group">
                     <div class="tavolo-header">
@@ -307,81 +348,123 @@
         if(divTavoli.innerHTML === "") { divTavoli.innerHTML = "<div style='text-align:center; color:rgba(255,255,255,0.6);'>Nessun ordine.</div>"; }
     }
 
-    // --- NUOVA LOGICA: CONTO TAVOLO AGGREGATO ---
-    let currentTableData = null; // Per la stampa
+    function toggleCompletato(key, currentStatus) {
+        db.ref('ordini/' + key).update({ completed: !currentStatus });
+    }
+
+    // --- MODIFICA ORDINE ---
+    function apriModifica(key) {
+        currentEditKey = key;
+        const ordine = globalRawData[key];
+        const container = document.getElementById('edit-items-container');
+        container.innerHTML = "";
+
+        if (ordine.items) {
+            ordine.items.forEach((item, index) => {
+                container.innerHTML += `
+                    <div class="edit-item-row" id="edit-item-${index}">
+                        <input type="number" class="edit-item-qty" value="${item.qty}">
+                        <input type="text" class="edit-item-name" value="${item.nome}">
+                        <button class="btn-remove-item" onclick="document.getElementById('edit-item-${index}').remove()">X</button>
+                    </div>`;
+            });
+        }
+        document.getElementById('edit-total-price').value = ordine.totale || 0;
+        document.getElementById('edit-overlay').style.display = 'flex';
+    }
+
+    function salvaModifica() {
+        const rows = document.querySelectorAll('.edit-item-row');
+        let newItems = [];
+        rows.forEach(row => {
+            const qty = parseInt(row.querySelector('.edit-item-qty').value);
+            const nome = row.querySelector('.edit-item-name').value;
+            if (qty > 0 && nome.trim() !== "") {
+                newItems.push({ qty, nome });
+            }
+        });
+
+        const newTotal = parseFloat(document.getElementById('edit-total-price').value) || 0;
+
+        db.ref('ordini/' + currentEditKey).update({
+            items: newItems,
+            totale: newTotal
+        }).then(() => {
+            document.getElementById('edit-overlay').style.display = 'none';
+        });
+    }
+
+    // --- LOGICA CONTO TAVOLO ---
+    let currentTableData = null;
+
+    function getPriceForItem(name) {
+        const menuPrimi = document.getElementById('menu-primi').value;
+        const menuSecondi = document.getElementById('menu-secondi').value;
+        const menuContorni = document.getElementById('menu-contorni').value;
+        const menuInsalatone = document.getElementById('menu-insalatone').value;
+        
+        let price = 0;
+        const cleanName = name.replace("PIZZA: ", "").trim();
+
+        if (name.startsWith("PIZZA:")) price = parseFloat(document.getElementById('price-pizze').value) || 0;
+        else if (menuPrimi.includes(cleanName)) price = parseFloat(document.getElementById('price-primi').value) || 0;
+        else if (menuSecondi.includes(cleanName)) price = parseFloat(document.getElementById('price-secondi').value) || 0;
+        else if (menuContorni.includes(cleanName)) price = parseFloat(document.getElementById('price-contorni').value) || 0;
+        else if (menuInsalatone.includes(cleanName)) price = parseFloat(document.getElementById('price-insalatone').value) || 0;
+        
+        return price;
+    }
 
     function mostraContoTavolo(tavolo) {
         const ordiniTavolo = globalOrdersByTable[tavolo];
         if (!ordiniTavolo) return;
 
         let riepilogoItems = {};
-        let totaleTavolo = 0;
+        let totaleRealeTavolo = 0;
 
-        // Aggregazione
         ordiniTavolo.forEach(ord => {
-            totaleTavolo += parseFloat(ord.totale || 0);
+            totaleRealeTavolo += parseFloat(ord.totale || 0);
             if (ord.items) {
                 ord.items.forEach(item => {
-                    const nomePiatto = item.nome;
+                    const nome = item.nome;
                     const qty = parseInt(item.qty);
-                    if (riepilogoItems[nomePiatto]) {
-                        riepilogoItems[nomePiatto] += qty;
-                    } else {
-                        riepilogoItems[nomePiatto] = qty;
-                    }
+                    if (!riepilogoItems[nome]) riepilogoItems[nome] = { qty: 0, price: getPriceForItem(nome) };
+                    riepilogoItems[nome].qty += qty;
                 });
             }
         });
 
-        // Generazione HTML Modal
         const container = document.getElementById('bill-content');
         container.innerHTML = "";
         
-        for (const [nome, qty] of Object.entries(riepilogoItems)) {
-            container.innerHTML += `
-                <div class="bill-item">
-                    <span><strong>${qty}x</strong> ${nome}</span>
-                </div>`;
+        for (const [nome, data] of Object.entries(riepilogoItems)) {
+            const lineTotal = data.qty * data.price;
+            const priceStr = data.price > 0 ? `(€ ${data.price.toFixed(2)} cad.)` : "";
+            container.innerHTML += `<div class="bill-item"><span><strong>${data.qty}x</strong> ${nome.replace("PIZZA: ","")} ${priceStr}</span><span>€ ${lineTotal.toFixed(2)}</span></div>`;
         }
 
-        document.getElementById('bill-title').innerText = "Recap Tavolo: " + tavolo;
-        document.getElementById('bill-total-value').innerText = "€ " + totaleTavolo.toFixed(2);
+        document.getElementById('bill-title').innerText = "Conto Tavolo: " + tavolo;
+        document.getElementById('bill-total-value').innerText = "€ " + totaleRealeTavolo.toFixed(2);
         
-        // Salvo dati per eventuale stampa
-        currentTableData = { tavolo, items: riepilogoItems, totale: totaleTavolo };
-
+        currentTableData = { tavolo, items: riepilogoItems, totale: totaleRealeTavolo };
         document.getElementById('bill-overlay').style.display = 'flex';
     }
 
     function stampaConto() {
         if(!currentTableData) return;
-        let c = `<div style="font-family:monospace;width:300px;padding:10px;"><h3 style="text-align:center;margin:0">Mela Stregata</h3><p style="text-align:center;">CONTO TAVOLO: ${currentTableData.tavolo}</p><hr><ul style="padding-left:15px;">`;
-        
-        for (const [nome, qty] of Object.entries(currentTableData.items)) {
-            c += `<li>${qty} x ${nome}</li>`;
+        let c = `<div style="font-family:monospace;width:300px;padding:10px;"><h3 style="text-align:center;margin:0">Mela Stregata</h3><p style="text-align:center;">CONTO TAVOLO: ${currentTableData.tavolo}</p><hr><ul style="padding-left:0;list-style:none;">`;
+        for (const [nome, data] of Object.entries(currentTableData.items)) {
+            const lineTotal = data.qty * data.price;
+            c += `<li style="display:flex;justify-content:space-between;"><span>${data.qty}x ${nome.replace("PIZZA: ","")}</span> <span>€ ${lineTotal.toFixed(2)}</span></li>`;
         }
-        
         c += `</ul><hr><h3 style="text-align:right">TOTALE: € ${currentTableData.totale.toFixed(2)}</h3></div>`;
-        const w = window.open('','','height=600,width=400'); 
-        w.document.write('<html><body>'+c+'</body></html>'); 
-        w.document.close(); w.focus(); setTimeout(()=>{w.print();w.close()},500);
+        const w = window.open('','','height=600,width=400'); w.document.write('<html><body>'+c+'</body></html>'); w.document.close(); w.focus(); setTimeout(()=>{w.print();w.close()},500);
     }
 
-    // --- FINE GIORNATA ---
     function fineGiornata() {
-        if(!confirm("⚠️ ATTENZIONE: Questo cancellerà il testo del Menu e metterà le Pizze Sold Out per preparare il sistema a domani.\n\n(Gli ordini NON verranno cancellati, per quello usa Reset Ordini). Procedere?")) return;
-
-        db.ref('menu').update({
-            primi: "",
-            secondi: "",
-            contorni: "",
-            insalatone: "",
-            // pizze: "", // Solitamente le pizze restano uguali, le lascio? Se vuoi cancellare anche loro, scommenta
-            pizze_esaurite: true, // Mette pizze sold out
-            blocca_ordini: false // Sblocca eventuali blocchi
-        });
-        alert("✅ Giornata chiusa! Menu svuotato e Pizze disattivate.");
-        location.reload();
+        if(!confirm("⚠️ Chiudere la giornata? Il menu verrà svuotato.")) return;
+        db.ref('menu').update({ primi: "", secondi: "", contorni: "", insalatone: "", pizze_esaurite: true, blocca_ordini: false });
+        alert("✅ Giornata chiusa."); location.reload();
     }
 
     function stampaOrdine(ordineString) {
@@ -423,4 +506,3 @@
 </script>
 </body>
 </html>
-
