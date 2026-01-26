@@ -73,6 +73,9 @@
         .timeline-time { font-weight: bold; color: var(--primary); font-size: 0.9em; }
         .timeline-user { font-weight: 600; color: #2d3436; margin-bottom: 5px; }
         .timeline-content { background: #f1f2f6; padding: 10px; border-radius: 8px; font-size: 0.9em; }
+        
+        /* Messaggio Nessun Ordine */
+        .no-orders-msg { color: #999; text-align: center; font-style: italic; padding: 10px; }
 
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(65, 96, 88, 0.95); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         #login-box { background: white; padding: 40px; border-radius: 15px; width: 300px; text-align: center; }
@@ -143,8 +146,9 @@
 
 <script>
     // ***********************************************************
-    // 
-   const firebaseConfig = {
+    // 👇 INCOLLA LE TUE CHIAVI FIREBASE QUI SOTTO 👇
+    // ***********************************************************
+    const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
         authDomain: "melastregatauni.firebaseapp.com",
         // Nota: questo URL è importante perché il tuo database è in Europa
@@ -159,8 +163,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const auth = firebase.auth();
-
-    // Variabile globale per salvare gli ordini grezzi per la cronologia
     let globalOrdersByTable = {};
 
     setInterval(() => { if(auth.currentUser) caricaDati(); }, 60000);
@@ -209,11 +211,14 @@
         const divAsporto = document.getElementById('lista-asporto');
         const divTavoli = document.getElementById('lista-tavoli');
         divAsporto.innerHTML = ""; divTavoli.innerHTML = "";
-        
-        // Reset variabile globale cronologia
         globalOrdersByTable = {};
 
-        if(!data) { divAsporto.innerHTML = "<p style='color:#999; text-align:center;'>Nessun ordine.</p>"; return; }
+        // 1. CASO DATABASE VUOTO
+        if(!data) { 
+            divAsporto.innerHTML = "<div class='no-orders-msg'>Nessun ordine.</div>"; 
+            divTavoli.innerHTML = "<div class='no-orders-msg'>Nessun ordine.</div>"; 
+            return; 
+        }
 
         let gruppiTavoli = {};
         let contaPersonePerTavolo = {}; 
@@ -222,20 +227,15 @@
         Object.entries(data).forEach(([key, ordine]) => {
             if (!ordine.items && !ordine.piatti) return; 
             
-            // --- GESTIONE DATI PER CRONOLOGIA E CONTEGGIO ---
             if (ordine.tipo === 'tavolo' && ordine.tavolo) {
                 const nomeTav = ordine.tavolo;
-                
-                // 1. Conta persone
                 if (!contaPersonePerTavolo[nomeTav]) { contaPersonePerTavolo[nomeTav] = 0; }
                 contaPersonePerTavolo[nomeTav] += (ordine.coperti || 0);
-
-                // 2. Salva ordine per cronologia
+                
                 if (!globalOrdersByTable[nomeTav]) { globalOrdersByTable[nomeTav] = []; }
                 globalOrdersByTable[nomeTav].push(ordine);
             }
 
-            // --- RENDERING CARD (VISUALE AGGREGATA/CARD) ---
             let piattiHTML = "";
             if(ordine.items) {
                 piattiHTML = ordine.items.map(i => `<span>• <strong>${i.qty}x</strong> ${i.nome}</span>`).join("<br>");
@@ -247,7 +247,6 @@
             const noteHTML = ordine.note ? `<div class="order-note">📝 Note: ${ordine.note}</div>` : "";
             const ordineString = encodeURIComponent(JSON.stringify(ordine));
 
-            // Tempo e Colore
             const orderTime = ordine.timestamp || 0;
             const diffMinutes = (now - orderTime) / 1000 / 60;
             let cardClass = "card";
@@ -284,11 +283,8 @@
             }
         });
 
-        // --- STAMPA GRUPPI TAVOLI ---
         for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
             const totalePersone = contaPersonePerTavolo[tavolo] || 0;
-            
-            // Bottone Cronologia nel titolo
             const btnCronologia = `<button class="tavolo-info-btn" onclick="apriCronologia('${tavolo}')">🕒 CRONOLOGIA</button>`;
 
             divTavoli.innerHTML += `
@@ -303,38 +299,33 @@
                     ${cards.join("")}
                 </div>`;
         }
+
+        // 2. CASO MISTO (Es. Solo Tavoli o Solo Asporto)
+        if(divAsporto.innerHTML === "") { divAsporto.innerHTML = "<div class='no-orders-msg'>Nessun ordine.</div>"; }
+        if(divTavoli.innerHTML === "") { divTavoli.innerHTML = "<div class='no-orders-msg'>Nessun ordine.</div>"; }
     }
 
-    // --- FUNZIONE CRONOLOGIA (PopUp) ---
     function apriCronologia(tavolo) {
         const ordiniTavolo = globalOrdersByTable[tavolo];
         if (!ordiniTavolo) return;
-
-        // Ordina per timestamp (dal più vecchio al più recente)
         ordiniTavolo.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
         const container = document.getElementById('history-list');
         const title = document.getElementById('history-title');
-        
         title.innerText = "Tavolo " + tavolo;
         container.innerHTML = "";
 
         ordiniTavolo.forEach(ord => {
             let piattiList = "";
             if(ord.items) piattiList = ord.items.map(i => `${i.qty}x ${i.nome}`).join(", ");
-            
             const note = ord.note ? `<div style="font-style:italic; color:#d35400; font-size:0.85em; margin-top:3px;">Note: ${ord.note}</div>` : "";
 
             const htmlItem = `
                 <div class="timeline-item">
                     <div class="timeline-time">${ord.orario}</div>
                     <div class="timeline-user">${ord.cliente} (${ord.coperti ? '+' + ord.coperti + ' pers.' : ''})</div>
-                    <div class="timeline-content">
-                        ${piattiList}
-                        ${note}
-                    </div>
-                </div>
-            `;
+                    <div class="timeline-content">${piattiList}${note}</div>
+                </div>`;
             container.innerHTML += htmlItem;
         });
 
