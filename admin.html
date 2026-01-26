@@ -36,7 +36,7 @@
         .admin-panel h2, #login-box h2, #bill-box h3, #edit-box h3 { color: var(--primary); border-bottom: 2px solid var(--border); }
         .menu-section h3 { color: var(--primary); }
 
-        input, textarea { width: 100%; padding: 12px; border: 1px solid #dfe6e9; border-radius: 8px; font-family: inherit; margin-bottom: 10px; box-sizing: border-box; background: #f9f9f9; }
+        input, textarea, select { width: 100%; padding: 12px; border: 1px solid #dfe6e9; border-radius: 8px; font-family: inherit; margin-bottom: 10px; box-sizing: border-box; background: #f9f9f9; }
         .price-input { width: 80px !important; display: inline-block; margin-left: 10px !important; text-align: center; border-color: var(--accent) !important; color: var(--accent); font-weight: bold; background: #fff; }
 
         button { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 1em; margin-top: 10px; }
@@ -67,7 +67,6 @@
         /* TASTI SULLA CARD */
         .card-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; }
         .action-icon { width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); margin:0; padding:0; }
-        
         .btn-delete-single { background: #fee; color: #c0392b; }
         .btn-check { background: #e8f5e9; color: #27ae60; font-size: 1.2em; }
         .btn-edit { background: #fff8e1; color: #f39c12; font-size: 1.1em; }
@@ -96,7 +95,7 @@
         /* EDIT ROWS */
         .edit-item-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
         .edit-item-qty { width: 60px; text-align: center; }
-        .edit-item-name { flex: 1; }
+        .edit-item-select { flex: 1; } /* Select prende tutto lo spazio */
         .btn-remove-item { background: #e74c3c; color: white; width: 30px; padding: 0; margin: 0; border-radius: 4px; }
     </style>
 </head>
@@ -146,6 +145,14 @@
         <button onclick="logout()" style="width:auto; background:rgba(255,255,255,0.2); color:white; padding:8px 15px; font-size:0.8em;">Esci</button>
     </div>
 
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <h2 style="margin:0;">Ordini in Arrivo</h2>
+        <div style="display:flex; align-items:center; gap:5px; font-size:0.9em; background:rgba(255,255,255,0.1); padding:5px 10px; border-radius:20px;">
+            <input type="checkbox" id="hide-completed" onchange="renderOrdini(globalRawData)" style="width:18px; height:18px; margin:0;">
+            <label for="hide-completed" style="cursor:pointer; color:white;">Nascondi Completati</label>
+        </div>
+    </div>
+
     <div id="revenue-box">
         <div style="font-size:0.8em; opacity:0.9;">INCASSO OGGI</div>
         <strong id="total-revenue">€ 0,00</strong>
@@ -168,7 +175,6 @@
         <button class="btn-success" onclick="salvaMenu()">AGGIORNA MENU</button>
     </div>
 
-    <h2>Ordini in Arrivo</h2>
     <div id="status-db" style="text-align:center; font-size:0.8em; color:rgba(255,255,255,0.7); margin-bottom:15px;">In attesa...</div>
     <h3>🥡 Asporto</h3> <div id="lista-asporto"></div>
     <h3>🍽️ Tavoli</h3> <div id="lista-tavoli"></div>
@@ -202,7 +208,6 @@
     let isFirstLoad = true;
     let currentEditKey = null;
 
-    // --- AUDIO ---
     let audioCtx = null;
     let audioEnabled = false;
     function abilitaAudio() {
@@ -260,7 +265,9 @@
 
     function renderOrdini(data) {
         const divAsporto = document.getElementById('lista-asporto'); const divTavoli = document.getElementById('lista-tavoli');
-        divAsporto.innerHTML = ""; divTavoli.innerHTML = ""; globalOrdersByTable = {}; globalRawData = data || {};
+        divAsporto.innerHTML = ""; divTavoli.innerHTML = ""; 
+        globalOrdersByTable = {}; 
+        globalRawData = data || {};
 
         if(!data) { 
             divAsporto.innerHTML = "<div style='text-align:center; color:rgba(255,255,255,0.6); font-style:italic;'>Nessun ordine.</div>"; 
@@ -271,6 +278,9 @@
         let gruppiTavoli = {}; let contaPersonePerTavolo = {}; const now = Date.now(); let incassoTotale = 0; let currentOrderCount = 0;
 
         Object.entries(data).forEach(([key, ordine]) => {
+            const hideCompleted = document.getElementById('hide-completed').checked;
+            if (hideCompleted && ordine.completed) return;
+
             if (!ordine.items && !ordine.piatti) return; 
             currentOrderCount++; if(ordine.totale) { incassoTotale += parseFloat(ordine.totale); }
 
@@ -278,6 +288,7 @@
                 const nomeTav = ordine.tavolo;
                 if (!contaPersonePerTavolo[nomeTav]) { contaPersonePerTavolo[nomeTav] = 0; }
                 contaPersonePerTavolo[nomeTav] += (ordine.coperti || 0);
+                
                 if (!globalOrdersByTable[nomeTav]) { globalOrdersByTable[nomeTav] = []; }
                 globalOrdersByTable[nomeTav].push(ordine);
                 if(!gruppiTavoli[nomeTav]) { gruppiTavoli[nomeTav] = []; }
@@ -328,7 +339,36 @@
 
     function toggleCompletato(key, currentStatus) { db.ref('ordini/' + key).update({ completed: !currentStatus }); }
 
-    // --- MODIFICA ORDINE CON RICALCOLO AUTO ---
+    // --- MODIFICA ORDINE CON TENDINA ---
+    function getMenuDropdownHTML(selectedName) {
+        let allItems = [];
+        ['menu-primi', 'menu-secondi', 'menu-contorni', 'menu-insalatone', 'menu-pizze'].forEach(id => {
+            const txt = document.getElementById(id).value;
+            txt.split('\n').forEach(line => {
+                const clean = line.replace('[X]', '').trim();
+                if(clean) allItems.push(clean);
+            });
+        });
+        allItems.sort();
+
+        let html = '';
+        let found = false;
+        // Normalizza per confronto (rimuovi PIZZA: per la selezione)
+        const cleanSelected = selectedName.replace("PIZZA: ", "").trim();
+
+        allItems.forEach(dish => {
+            const isSelected = dish === cleanSelected;
+            if(isSelected) found = true;
+            html += `<option value="${dish}" ${isSelected ? 'selected' : ''}>${dish}</option>`;
+        });
+
+        // Se l'elemento originale non è nel menu corrente, aggiungilo in cima
+        if(!found && cleanSelected) {
+            html = `<option value="${cleanSelected}" selected>${cleanSelected} (Attuale)</option>` + html;
+        }
+        return `<select class="edit-item-select" onchange="ricalcolaTotaleModifica()">${html}</select>`;
+    }
+
     function apriModifica(key) {
         currentEditKey = key;
         const ordine = globalRawData[key];
@@ -337,10 +377,11 @@
 
         if (ordine.items) {
             ordine.items.forEach((item, index) => {
+                const dropdown = getMenuDropdownHTML(item.nome);
                 container.innerHTML += `
                     <div class="edit-item-row" id="edit-item-${index}">
                         <input type="number" class="edit-item-qty" value="${item.qty}" oninput="ricalcolaTotaleModifica()">
-                        <input type="text" class="edit-item-name" value="${item.nome}" oninput="ricalcolaTotaleModifica()">
+                        ${dropdown}
                         <button class="btn-remove-item" onclick="{document.getElementById('edit-item-${index}').remove(); ricalcolaTotaleModifica();}">X</button>
                     </div>`;
             });
@@ -354,20 +395,32 @@
         const rows = document.querySelectorAll('.edit-item-row');
         rows.forEach(row => {
             const qty = parseInt(row.querySelector('.edit-item-qty').value) || 0;
-            const name = row.querySelector('.edit-item-name').value;
-            const price = getPriceForItem(name); // Cerca prezzo nel menu corrente
+            const select = row.querySelector('.edit-item-select');
+            const name = select.value; // Valore selezionato
+            
+            // Cerca prezzo. Se è una pizza, getPriceForItem lo gestisce anche senza "PIZZA:"
+            // ma getPriceForItem cerca corrispondenza.
+            // Se "Margherita" è in menu-pizze, ritorna prezzo pizze.
+            const price = getPriceForItem(name); 
             total += (qty * price);
         });
-        // Aggiorna il campo totale (lasciandolo comunque editabile)
         document.getElementById('edit-total-price').value = total.toFixed(2);
     }
 
     function salvaModifica() {
         const rows = document.querySelectorAll('.edit-item-row');
         let newItems = [];
+        const menuPizze = document.getElementById('menu-pizze').value;
+
         rows.forEach(row => {
             const qty = parseInt(row.querySelector('.edit-item-qty').value);
-            const nome = row.querySelector('.edit-item-name').value;
+            let nome = row.querySelector('.edit-item-select').value;
+            
+            // Se il nome è presente nel menu pizze, aggiungi prefisso per coerenza visiva (opzionale ma carino)
+            if (menuPizze.includes(nome) && !nome.startsWith("PIZZA:")) {
+                nome = "PIZZA: " + nome;
+            }
+
             if (qty > 0 && nome.trim() !== "") newItems.push({ qty, nome });
         });
         const newTotal = parseFloat(document.getElementById('edit-total-price').value) || 0;
@@ -381,13 +434,18 @@
         const menuSecondi = document.getElementById('menu-secondi').value;
         const menuContorni = document.getElementById('menu-contorni').value;
         const menuInsalatone = document.getElementById('menu-insalatone').value;
+        const menuPizze = document.getElementById('menu-pizze').value;
+
         let price = 0;
         const cleanName = name.replace("PIZZA: ", "").trim();
+
         if (name.startsWith("PIZZA:")) price = parseFloat(document.getElementById('price-pizze').value) || 0;
         else if (menuPrimi.includes(cleanName)) price = parseFloat(document.getElementById('price-primi').value) || 0;
         else if (menuSecondi.includes(cleanName)) price = parseFloat(document.getElementById('price-secondi').value) || 0;
         else if (menuContorni.includes(cleanName)) price = parseFloat(document.getElementById('price-contorni').value) || 0;
         else if (menuInsalatone.includes(cleanName)) price = parseFloat(document.getElementById('price-insalatone').value) || 0;
+        else if (menuPizze.includes(cleanName)) price = parseFloat(document.getElementById('price-pizze').value) || 0; // Check extra per pizze senza prefisso
+        
         return price;
     }
 
@@ -410,10 +468,22 @@
             const priceStr = data.price > 0 ? `(€ ${data.price.toFixed(2)} cad.)` : "";
             container.innerHTML += `<div class="bill-item"><span><strong>${data.qty}x</strong> ${nome.replace("PIZZA: ","")} ${priceStr}</span><span>€ ${lineTotal.toFixed(2)}</span></div>`;
         }
+        
+        // Calcolo "Alla Romana"
+        let htmlDiviso = `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #eee; font-size:0.9em; color:#666; display:flex; align-items:center; gap:10px;"><span>➗ Diviso</span><input type="number" id="split-num" value="1" min="1" style="width:50px; padding:5px; text-align:center;" oninput="calcolaDiviso(${totaleRealeTavolo})">persone = <strong id="split-res" style="color:#2c3e50;">€ ${totaleRealeTavolo.toFixed(2)}</strong> a testa</div>`;
+
         document.getElementById('bill-title').innerText = "Conto Tavolo: " + tavolo;
         document.getElementById('bill-total-value').innerText = "€ " + totaleRealeTavolo.toFixed(2);
+        container.innerHTML += htmlDiviso;
+
         currentTableData = { tavolo, items: riepilogoItems, totale: totaleRealeTavolo };
         document.getElementById('bill-overlay').style.display = 'flex';
+    }
+
+    function calcolaDiviso(totale) {
+        const persone = parseInt(document.getElementById('split-num').value) || 1;
+        const risultato = totale / persone;
+        document.getElementById('split-res').innerText = "€ " + risultato.toFixed(2);
     }
 
     function stampaConto() {
@@ -428,9 +498,9 @@
     }
 
     function fineGiornata() {
-        if(!confirm("⚠️ Chiudere la giornata? Il menu verrà svuotato.")) return;
-        db.ref('menu').update({ primi: "", secondi: "", contorni: "", insalatone: "", pizze_esaurite: true, blocca_ordini: false });
-        alert("✅ Giornata chiusa."); location.reload();
+        if(!confirm("⚠️ ATTENZIONE: Cancello Primi e Secondi per domani.\n(Contorni, Insalatone e Pizze NON verranno toccati).\n\nProcedere?")) return;
+        db.ref('menu').update({ primi: "", secondi: "", pizze_esaurite: true, blocca_ordini: false });
+        alert("✅ Giornata chiusa! Primi e Secondi svuotati."); location.reload();
     }
 
     function stampaOrdine(ordineString) {
