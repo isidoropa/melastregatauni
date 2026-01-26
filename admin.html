@@ -1,153 +1,222 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Ristorante</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <style>
-        :root { --primary: #ff6b6b; --bg: #416058; --dark: #2d3436; --light: #fff; }
-        body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--dark); }
-        .container { max-width: 600px; margin: 0 auto; background: var(--light); padding: 30px; border-radius: 15px; }
-        h1, h2, h3 { text-align: center; margin-bottom: 15px; }
-        h1 { color: var(--primary); }
-        
-        /* Input Prezzi */
-        .price-input { width: 80px !important; padding: 5px !important; margin: 0 0 0 10px !important; display: inline-block; text-align: center; font-weight: bold; border-color: #27ae60 !important; color: #27ae60; }
-        .price-label { font-size: 0.9em; color: #666; }
+        :root {
+            --primary: #2c3e50;
+            --accent: #27ae60;
+            --danger: #e74c3c;
+            --bg: #f4f7f6;
+            --surface: #ffffff;
+            --border: #e2e6ea;
+        }
 
-        input, textarea { width: 100%; padding: 12px; margin: 5px 0 15px 0; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
-        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1.1em; cursor: pointer; margin-top: 10px; }
-        
-        .print-btn { background: #636e72; margin-top: 10px; font-size: 0.9em; padding: 10px; width: 100%; }
-        
-        .global-actions { display: flex; gap: 10px; margin-top: 30px; }
-        .excel-btn { background: #27ae60; flex: 1; }
-        .reset-btn { background: #d63031; flex: 1; }
-        .logout-btn { background: #636e72; font-size: 0.9em; padding: 10px; margin-bottom: 20px; }
-        
-        .menu-section { border: 1px solid #eee; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid var(--primary); }
-        
-        .card { background: #fff; padding: 15px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 4px 5px rgba(0,0,0,0.05); transition: all 0.5s ease; position: relative; border: 1px solid #eee; }
-        .card-fresh { background-color: #fff9c4; border: 2px solid #f1c40f !important; animation: pulseNew 2s infinite; }
-        .card-old { background-color: #f5f6fa; opacity: 0.7; border-left-color: #b2bec3 !important; }
-        .badge-fresh { position: absolute; top: -10px; right: 25px; background: #d63031; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.8em; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 10; }
-        @keyframes pulseNew { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
-        .btn-delete-single { position: absolute; top: 10px; right: 10px; background: #e74c3c; color: white; width: 25px; height: 25px; border-radius: 50%; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9em; padding: 0; margin: 0; }
-        
-        .tavolo-group { background: #fffdf2; border: 1px solid #ffeeba; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
-        .tavolo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 2px solid #eecd64; padding-bottom: 5px; flex-wrap: wrap; gap: 10px; }
-        .tavolo-name { font-weight: 800; color: #e1b12c; text-transform: uppercase; font-size: 1.2em; }
-        .tavolo-info-btn { background: #2d3436; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; border:none; margin:0; }
-        .order-note { background: #ffeaa7; color: #d35400; padding: 8px; border-radius: 6px; font-size: 0.9em; margin-top: 10px; font-style: italic; border-left: 3px solid #fdcb6e; }
-        
-        .control-check-container { background: #eee; padding: 10px; border-radius: 8px; margin-top: 10px; display: flex; align-items: center; gap: 10px; font-weight: bold; color: #555; }
-        .panic-mode { background: #ffcccc; border: 2px solid #d63031; color: #c0392b; }
-        
-        .no-orders-msg { color: #999; text-align: center; font-style: italic; padding: 10px; }
-        #revenue-box { background: #27ae60; color: white; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px; font-size: 1.2em; box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3); }
-        #connection-status { position: fixed; top: 10px; right: 10px; z-index: 10001; background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 8px; }
-        .led { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-        .led-on { background: #2ecc71; box-shadow: 0 0 8px #2ecc71; }
-        .led-off { background: #e74c3c; box-shadow: 0 0 8px #e74c3c; animation: flash 1s infinite; }
-        @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: #2d3436;
+        }
 
-        #history-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: none; justify-content: center; align-items: center; }
-        #history-box { background: white; width: 90%; max-width: 450px; border-radius: 15px; padding: 25px; max-height: 80vh; overflow-y: auto; position: relative; }
-        .timeline-item { border-left: 2px solid #dfe6e9; margin-left: 10px; padding-left: 20px; padding-bottom: 20px; position: relative; }
-        .timeline-item::before { content: ''; position: absolute; left: -6px; top: 0; width: 10px; height: 10px; background: var(--primary); border-radius: 50%; }
-        .timeline-time { font-weight: bold; color: var(--primary); font-size: 0.9em; }
-        .timeline-user { font-weight: 600; color: #2d3436; margin-bottom: 5px; }
-        .timeline-content { background: #f1f2f6; padding: 10px; border-radius: 8px; font-size: 0.9em; }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: transparent;
+        }
 
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(65, 96, 88, 0.95); display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        #login-box { background: white; padding: 40px; border-radius: 15px; width: 300px; text-align: center; }
-        .error-msg { color: red; font-size: 0.9em; margin-top: 10px; display: none; }
+        /* Header e Titoli */
+        h1 { color: var(--primary); text-align: center; font-weight: 700; margin-bottom: 20px; }
+        h2 { font-size: 1.2em; color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-top: 30px; }
+
+        /* Box Bianchi (Cards) */
+        .admin-panel, .menu-section, .card {
+            background: var(--surface);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        /* Input Styles */
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dfe6e9;
+            border-radius: 8px;
+            font-family: inherit;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        .price-input {
+            width: 80px !important; display: inline-block; 
+            margin-left: 10px !important; text-align: center;
+            border-color: var(--accent) !important; color: var(--accent); font-weight: bold;
+        }
+
+        /* Bottoni */
+        button {
+            width: 100%; padding: 14px; border: none; border-radius: 8px;
+            font-weight: 600; cursor: pointer; transition: 0.2s;
+            font-size: 1em; margin-top: 10px;
+        }
+        button:hover { filter: brightness(95%); }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--accent); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .print-btn { background: #636e72; color: white; font-size: 0.85em; padding: 10px; }
+        
+        .global-actions { display: flex; gap: 10px; margin-top: 20px; }
+        
+        /* Dashboard Stats */
+        #revenue-box {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white; padding: 20px; border-radius: 12px;
+            text-align: center; font-size: 1.3em;
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+            margin-bottom: 20px;
+        }
+
+        /* Card Ordini */
+        .card { position: relative; border-left: 5px solid #bdc3c7; transition: all 0.5s; }
+        .card-fresh { border-left-color: #f1c40f; background: #fffdf0; animation: pulse 2s infinite; }
+        .card-old { opacity: 0.6; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(241, 196, 15, 0); } 100% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0); } }
+
+        .badge-new { 
+            position: absolute; top: 10px; right: 40px; 
+            background: #e74c3c; color: white; padding: 3px 8px; 
+            border-radius: 4px; font-size: 0.7em; font-weight: bold; 
+        }
+
+        .btn-delete-single {
+            position: absolute; top: 10px; right: 10px;
+            background: #fee; color: #c0392b;
+            width: 24px; height: 24px; border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Tavoli */
+        .tavolo-group { border: 2px dashed #dfe6e9; background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+        .tavolo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
+        .tavolo-name { font-weight: 800; color: var(--primary); font-size: 1.1em; }
+        .tavolo-info-btn { background: var(--primary); color: white; font-size: 0.8em; width: auto; padding: 5px 10px; margin: 0; }
+
+        /* Checkbox Containers */
+        .control-box {
+            background: #f1f2f6; padding: 12px; border-radius: 8px; margin-top: 10px;
+            display: flex; align-items: center; gap: 10px; font-weight: 600; color: #555;
+        }
+        .control-box input { width: 20px; margin: 0; }
+        .panic-mode { background: #ffebeb; color: #c0392b; border: 1px solid #fab1a0; }
+
+        /* Connection Monitor */
+        #connection-status { position: fixed; top: 15px; right: 15px; z-index: 999; background: white; padding: 6px 15px; border-radius: 50px; font-size: 0.8em; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 8px; }
+        .led { width: 8px; height: 8px; border-radius: 50%; }
+        .led-on { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
+        .led-off { background: #e74c3c; }
+
+        /* Overlays */
+        #login-overlay, #history-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(44, 62, 80, 0.9); z-index: 10000; display: flex; justify-content: center; align-items: center; }
+        #login-box, #history-box { background: white; padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; position: relative; }
+        
+        .timeline-item { text-align: left; padding-left: 15px; border-left: 2px solid #dfe6e9; margin-bottom: 15px; padding-bottom: 5px; }
+        .timeline-time { color: var(--accent); font-weight: bold; font-size: 0.9em; }
     </style>
 </head>
 <body>
 
-<div id="connection-status"><div id="status-led" class="led led-off"></div><span id="status-text">Connessione...</span></div>
+<div id="connection-status"><div id="status-led" class="led led-off"></div><span id="status-text">...</span></div>
 
 <div id="login-overlay">
     <div id="login-box">
-        <h2 style="color:var(--primary)">Area Admin</h2>
-        <input type="email" id="email" placeholder="Email Admin">
+        <h2>🔒 Accesso Admin</h2>
+        <input type="email" id="email" placeholder="Email">
         <input type="password" id="password" placeholder="Password">
-        <button onclick="login()">ENTRA</button>
-        <div id="login-error" class="error-msg">Credenziali sbagliate!</div>
+        <button class="btn-primary" onclick="login()">ENTRA</button>
+        <div id="login-error" style="color:red; margin-top:10px; display:none;">Errore Login</div>
     </div>
 </div>
 
-<div id="history-overlay">
+<div id="history-overlay" style="display:none;">
     <div id="history-box">
-        <button onclick="document.getElementById('history-overlay').style.display='none'" style="position:absolute; top:10px; right:15px; background:none; color:#333; font-size:1.5em; padding:0; width:auto; margin:0;">&times;</button>
-        <h2 style="margin-top:0; color:var(--dark)">Cronologia Tavolo</h2>
-        <h3 id="history-title" style="color:var(--primary)"></h3>
-        <div id="history-list" style="margin-top:20px;"></div>
+        <button onclick="document.getElementById('history-overlay').style.display='none'" style="position:absolute; top:10px; right:10px; width:30px; padding:5px; background:none; font-size:1.5em; color:#333;">&times;</button>
+        <h3>Cronologia Tavolo</h3>
+        <h4 id="history-title" style="color:var(--accent)"></h4>
+        <div id="history-list" style="margin-top:20px; max-height:300px; overflow-y:auto;"></div>
     </div>
 </div>
 
 <div class="container" id="admin-content" style="display:none;">
-    <button class="logout-btn" onclick="logout()">Esci</button>
-    <h1>Gestione Ristorante</h1>
-
-    <div id="revenue-box">💰 Incasso: <strong id="total-revenue">€ 0,00</strong></div>
-    <button id="btn-audio" onclick="abilitaAudio()" style="background:#0984e3; margin-bottom:20px; font-size:0.9em; padding:10px;">🔔 CLICCA QUI PER ABILITARE SUONI</button>
     
-    <div class="menu-section">
-        <h2>Imposta Menu e Prezzi</h2>
-        <p style="font-size:0.8em; color:#666; text-align:center;">💡 TIP: Scrivi <strong>[X]</strong> per ESAURITO</p>
-        
-        <div style="background:#e8f5e9; padding:10px; border-radius:8px; margin-bottom:15px; border:1px solid #27ae60; text-align:center;">
-            <label style="color:#27ae60; font-weight:bold;">✨ Prezzo Menu Combo:</label>
-            <input type="number" id="price-combo" class="price-input" step="0.50" value="7.00"> €
-        </div>
-
-        <div class="menu-grid">
-            <h3>🍝 Primi <input type="number" id="price-primi" class="price-input" value="5">€</h3> 
-            <textarea id="menu-primi" rows="2"></textarea>
-            
-            <h3>🍖 Secondi <input type="number" id="price-secondi" class="price-input" value="5">€</h3> 
-            <textarea id="menu-secondi" rows="2"></textarea>
-            
-            <h3>🥗 Contorni <input type="number" id="price-contorni" class="price-input" value="3">€</h3> 
-            <textarea id="menu-contorni" rows="2"></textarea>
-            
-            <h3 style="color:#27ae60;">🥬 Insalatone <input type="number" id="price-insalatone" class="price-input" value="6">€</h3> 
-            <textarea id="menu-insalatone" rows="2"></textarea>
-            
-            <h3>🍕 Pizze (Info) <input type="number" id="price-pizze" class="price-input" value="7">€</h3> 
-            <textarea id="menu-pizze" rows="2"></textarea>
-            
-            <div class="control-check-container">
-                <input type="checkbox" id="pizze-soldout">
-                <label for="pizze-soldout">🚫 Pizze ESAURITE</label>
-            </div>
-            <div class="control-check-container panic-mode">
-                <input type="checkbox" id="blocca-ordini">
-                <label for="blocca-ordini">⛔️ BLOCCA TUTTI GLI ORDINI (Emergenza)</label>
-            </div>
-        </div>
-        <button onclick="salvaMenu()">PUBBLICA MENU E PREZZI</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h1 style="margin:0;">Dashboard</h1>
+        <button onclick="logout()" style="width:auto; background:#95a5a6; color:white; padding:8px 15px; font-size:0.8em;">Esci</button>
     </div>
 
-    <hr style="border:0; border-top:1px solid #eee; margin:30px 0;">
+    <div id="revenue-box">
+        <div style="font-size:0.8em; opacity:0.8;">INCASSO OGGI</div>
+        <strong id="total-revenue">€ 0,00</strong>
+    </div>
+
+    <button id="btn-audio" onclick="abilitaAudio()" style="background:#3498db; color:white; margin-bottom:20px;">🔊 ABILITA SUONI NOTIFICA</button>
+    
+    <div class="admin-panel">
+        <h2>Gestione Menu & Prezzi</h2>
+        <div style="background:#e8f5e9; padding:10px; border-radius:8px; margin-bottom:15px; text-align:center; border:1px solid #c3e6cb;">
+            Prezzo Combo: <input type="number" id="price-combo" class="price-input" value="7.00"> €
+        </div>
+
+        <h3>🍝 Primi <input type="number" id="price-primi" class="price-input" value="5">€</h3> 
+        <textarea id="menu-primi" rows="2"></textarea>
+        
+        <h3>🍖 Secondi <input type="number" id="price-secondi" class="price-input" value="5">€</h3> 
+        <textarea id="menu-secondi" rows="2"></textarea>
+        
+        <h3>🥗 Contorni <input type="number" id="price-contorni" class="price-input" value="3">€</h3> 
+        <textarea id="menu-contorni" rows="2"></textarea>
+        
+        <h3 style="color:var(--accent);">🥬 Insalatone <input type="number" id="price-insalatone" class="price-input" value="6">€</h3> 
+        <textarea id="menu-insalatone" rows="2"></textarea>
+        
+        <h3>🍕 Pizze <input type="number" id="price-pizze" class="price-input" value="7">€</h3> 
+        <textarea id="menu-pizze" rows="2"></textarea>
+        
+        <div class="control-box">
+            <input type="checkbox" id="pizze-soldout"> <label for="pizze-soldout">🚫 Pizze ESAURITE</label>
+        </div>
+        <div class="control-box panic-mode">
+            <input type="checkbox" id="blocca-ordini"> <label for="blocca-ordini">⛔️ BLOCCA ORDINI (Panic)</label>
+        </div>
+
+        <button class="btn-success" onclick="salvaMenu()">AGGIORNA MENU</button>
+    </div>
 
     <h2>Ordini in Arrivo</h2>
-    <div id="status-db" style="text-align:center; color:gray; font-size:0.8em; margin-bottom:10px;">Connessione...</div>
-    <h3>🥡 Asporto</h3> <div id="lista-asporto"></div>
-    <h3>🍽️ Tavoli</h3> <div id="lista-tavoli"></div>
+    <div id="status-db" style="text-align:center; font-size:0.8em; color:#999; margin-bottom:15px;">In attesa...</div>
+
+    <h3>🥡 Asporto</h3>
+    <div id="lista-asporto"></div>
+
+    <h3>🍽️ Tavoli</h3>
+    <div id="lista-tavoli"></div>
 
     <div class="global-actions">
-        <button class="excel-btn" onclick="scaricaExcel()">📥 SCARICA REPORT (.CSV)</button>
-        <button class="delete-btn" style="margin-top:0;" onclick="cancellaTutto()">🗑️ RESET GIORNATA</button>
+        <button class="btn-success" onclick="scaricaExcel()">📥 EXCEL</button>
+        <button class="btn-danger" onclick="cancellaTutto()">🗑️ RESET</button>
     </div>
+
 </div>
 
 <audio id="notification-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-positive-interface-beep-221.mp3"></audio>
@@ -156,7 +225,6 @@
     // ***********************************************************
     // 👇 INCOLLA LE TUE CHIAVI FIREBASE QUI SOTTO 👇
     // ***********************************************************
-    
     const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
         authDomain: "melastregatauni.firebaseapp.com",
@@ -167,7 +235,6 @@
         messagingSenderId: "438544443213",
         appId: "1:438544443213:web:f30f121f0642b8e8a9b904"
     };
-
     // ***********************************************************
 
     firebase.initializeApp(firebaseConfig);
@@ -180,8 +247,8 @@
     let isFirstLoad = true;
 
     db.ref(".info/connected").on("value", (snap) => {
-        if (snap.val() === true) { document.getElementById('status-led').className = "led led-on"; document.getElementById('status-text').innerText = "ONLINE"; document.getElementById('status-text').style.color = "#27ae60"; } 
-        else { document.getElementById('status-led').className = "led led-off"; document.getElementById('status-text').innerText = "OFFLINE"; document.getElementById('status-text').style.color = "#c0392b"; }
+        if (snap.val() === true) { document.getElementById('status-led').className = "led led-on"; document.getElementById('status-text').innerText = "Online"; document.getElementById('status-text').style.color = "#2ecc71"; } 
+        else { document.getElementById('status-led').className = "led led-off"; document.getElementById('status-text').innerText = "Offline"; document.getElementById('status-text').style.color = "#e74c3c"; }
     });
 
     setInterval(() => { if(auth.currentUser) caricaDati(); }, 60000);
@@ -189,7 +256,7 @@
 
     function login() { const email = document.getElementById('email').value; const pass = document.getElementById('password').value; auth.signInWithEmailAndPassword(email, pass).catch((error) => { document.getElementById('login-error').style.display = 'block'; }); }
     function logout() { auth.signOut().then(() => location.reload()); }
-    function abilitaAudio() { const a = document.getElementById('notification-sound'); a.play().then(() => { a.pause(); a.currentTime = 0; audioEnabled = true; document.getElementById('btn-audio').style.display = 'none'; alert("🔊 Audio Attivato!"); }).catch(e => alert("Errore audio: " + e)); }
+    function abilitaAudio() { const a = document.getElementById('notification-sound'); a.play().then(() => { a.pause(); a.currentTime = 0; audioEnabled = true; document.getElementById('btn-audio').style.display = 'none'; alert("Audio Attivato!"); }).catch(e => alert("Errore audio: " + e)); }
     function playSound() { if(audioEnabled) { const a = document.getElementById('notification-sound'); a.currentTime = 0; a.play().catch(e=>{}); } }
 
     function caricaDati() {
@@ -204,7 +271,6 @@
                 document.getElementById('pizze-soldout').checked = m.pizze_esaurite || false;
                 document.getElementById('blocca-ordini').checked = m.blocca_ordini || false;
 
-                // Carica Prezzi
                 document.getElementById('price-primi').value = m.prezzo_primi || 5;
                 document.getElementById('price-secondi').value = m.prezzo_secondi || 5;
                 document.getElementById('price-contorni').value = m.prezzo_contorni || 3;
@@ -213,14 +279,18 @@
                 document.getElementById('price-combo').value = m.prezzo_combo || 7;
             }
         });
-        db.ref('ordini').on('value', (snapshot) => { document.getElementById('status-db').innerText = "Dati aggiornati."; renderOrdini(snapshot.val()); });
+        db.ref('ordini').on('value', (snapshot) => { document.getElementById('status-db').innerText = "Ultimo agg: " + new Date().toLocaleTimeString(); renderOrdini(snapshot.val()); });
     }
 
     function renderOrdini(data) {
         const divAsporto = document.getElementById('lista-asporto'); const divTavoli = document.getElementById('lista-tavoli');
         divAsporto.innerHTML = ""; divTavoli.innerHTML = ""; globalOrdersByTable = {}; globalRawData = data || {};
 
-        if(!data) { divAsporto.innerHTML = "<div class='no-orders-msg'>Nessun ordine.</div>"; divTavoli.innerHTML = "<div class='no-orders-msg'>Nessun ordine.</div>"; document.getElementById('total-revenue').innerText = "€ 0,00"; lastOrderCount = 0; return; }
+        if(!data) { 
+            divAsporto.innerHTML = "<div style='text-align:center; color:#ccc; font-style:italic;'>Nessun ordine.</div>"; 
+            divTavoli.innerHTML = "<div style='text-align:center; color:#ccc; font-style:italic;'>Nessun ordine.</div>"; 
+            document.getElementById('total-revenue').innerText = "€ 0,00"; lastOrderCount = 0; return; 
+        }
 
         let gruppiTavoli = {}; let contaPersonePerTavolo = {}; const now = Date.now(); let incassoTotale = 0; let currentOrderCount = 0;
 
@@ -236,23 +306,25 @@
                 globalOrdersByTable[nomeTav].push(ordine);
             }
 
-            let piattiHTML = ""; if(ordine.items) { piattiHTML = ordine.items.map(i => `<span>• <strong>${i.qty}x</strong> ${i.nome}</span>`).join("<br>"); }
-            const telefonoHTML = ordine.telefono ? `<div style="margin-top:5px; font-size:0.9em;">📞 <a href="tel:${ordine.telefono}" style="font-weight:bold; color:#54a0ff;">${ordine.telefono}</a></div>` : "";
-            const totaleHTML = ordine.totale ? `<div style="margin-top:10px; font-size:1.1em; color:#27ae60; border-top:1px solid #eee; padding-top:5px;">💰 <strong>Totale: € ${parseFloat(ordine.totale).toFixed(2)}</strong></div>` : "";
+            let piattiHTML = ""; if(ordine.items) { piattiHTML = ordine.items.map(i => `<div style="margin-bottom:2px;">• <strong>${i.qty}</strong> ${i.nome}</div>`).join(""); }
+            const telefonoHTML = ordine.telefono ? `<div style="font-size:0.85em; margin-top:5px; color:#3498db;">📞 ${ordine.telefono}</div>` : "";
+            const totaleHTML = ordine.totale ? `<div style="margin-top:10px; font-weight:bold; color:#27ae60; border-top:1px dashed #eee; padding-top:5px;">€ ${parseFloat(ordine.totale).toFixed(2)}</div>` : "";
             const copertiOrdine = (ordine.tipo === 'tavolo' && ordine.coperti) ? `<span style="font-size:0.8em; background:#eee; padding:2px 6px; border-radius:4px; margin-left:5px;">👤 +${ordine.coperti}</span>` : "";
-            const noteHTML = ordine.note ? `<div class="order-note">📝 Note: ${ordine.note}</div>` : "";
+            const noteHTML = ordine.note ? `<div style="background:#fff3cd; color:#856404; padding:5px; border-radius:4px; font-size:0.85em; margin-top:5px;">⚠️ ${ordine.note}</div>` : "";
             const ordineString = encodeURIComponent(JSON.stringify(ordine));
             const diffMinutes = (now - (ordine.timestamp || 0)) / 1000 / 60;
             let cardClass = "card"; let badgeHTML = "";
-            if (diffMinutes < 5) { cardClass += " card-fresh"; badgeHTML = '<div class="badge-fresh">NUOVO 🔥</div>'; } else if (diffMinutes > 30) { cardClass += " card-old"; }
+            if (diffMinutes < 5) { cardClass += " card-fresh"; badgeHTML = '<div class="badge-new">NEW</div>'; } else if (diffMinutes > 30) { cardClass += " card-old"; }
 
             const htmlCard = `
-                <div class="${cardClass}" style="border-left: 5px solid ${ordine.tipo === 'asporto' ? '#27ae60' : '#2980b9'};">
-                    <button class="btn-delete-single" onclick="eliminaSingolo('${key}')">X</button>
+                <div class="${cardClass}" style="border-left-color: ${ordine.tipo === 'asporto' ? '#27ae60' : '#2980b9'};">
+                    <button class="btn-delete-single" onclick="eliminaSingolo('${key}')">&times;</button>
                     ${badgeHTML}
-                    <div style="font-size:1.1em;"><strong>${ordine.cliente}</strong> <span style="font-size:0.9em; color:#666;">(${ordine.orario})</span>${copertiOrdine}</div>
-                    ${telefonoHTML}<div style="margin-top:8px; color:#444;">${piattiHTML}</div>${noteHTML}${totaleHTML}
-                    <button class="print-btn" onclick="stampaOrdine('${ordineString}')">🖨️ STAMPA</button>
+                    <div style="font-size:1.05em; font-weight:bold;">${ordine.cliente} <span style="font-weight:normal; font-size:0.8em; color:#7f8c8d;">(${ordine.orario})</span> ${copertiOrdine}</div>
+                    ${telefonoHTML}
+                    <div style="margin-top:10px; font-size:0.95em;">${piattiHTML}</div>
+                    ${noteHTML} ${totaleHTML}
+                    <button class="print-btn" onclick="stampaOrdine('${ordineString}')">🖨️ Stampa</button>
                 </div>`;
             if(ordine.tipo === 'asporto') { divAsporto.innerHTML += htmlCard; } else { const nomeTav = ordine.tavolo || "Sconosciuto"; if(!gruppiTavoli[nomeTav]) { gruppiTavoli[nomeTav] = []; } gruppiTavoli[nomeTav].push(htmlCard); }
         });
@@ -263,38 +335,37 @@
 
         for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
             const totalePersone = contaPersonePerTavolo[tavolo] || 0;
-            divTavoli.innerHTML += `<div class="tavolo-group"><div class="tavolo-header"><span class="tavolo-name">TAVOLO: ${tavolo}</span><div style="display:flex; align-items:center; gap:10px;"><button class="tavolo-info-btn" onclick="apriCronologia('${tavolo}')">🕒 CRONOLOGIA</button><span class="tavolo-count">TOT: ${totalePersone} 👤</span></div></div>${cards.join("")}</div>`;
+            divTavoli.innerHTML += `<div class="tavolo-group"><div class="tavolo-header"><span class="tavolo-name">${tavolo}</span><button class="tavolo-info-btn" onclick="apriCronologia('${tavolo}')">🕒 Storia</button><span style="font-size:0.9em; font-weight:bold;">${totalePersone} Pers.</span></div>${cards.join("")}</div>`;
         }
-        if(divAsporto.innerHTML === "") { divAsporto.innerHTML = "<div class='no-orders-msg'>Nessun ordine.</div>"; }
-        if(divTavoli.innerHTML === "") { divTavoli.innerHTML = "<div class='no-orders-msg'>Nessun ordine.</div>"; }
+        if(divAsporto.innerHTML === "") { divAsporto.innerHTML = "<div style='text-align:center; color:#ccc;'>Nessun ordine.</div>"; }
+        if(divTavoli.innerHTML === "") { divTavoli.innerHTML = "<div style='text-align:center; color:#ccc;'>Nessun ordine.</div>"; }
     }
 
     function apriCronologia(tavolo) {
         const ordiniTavolo = globalOrdersByTable[tavolo]; if (!ordiniTavolo) return;
         ordiniTavolo.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-        document.getElementById('history-title').innerText = "Tavolo " + tavolo; document.getElementById('history-list').innerHTML = "";
+        document.getElementById('history-title').innerText = tavolo; document.getElementById('history-list').innerHTML = "";
         ordiniTavolo.forEach(ord => {
-            let piattiList = ""; if(ord.items) piattiList = ord.items.map(i => `${i.qty}x ${i.nome}`).join(", ");
-            const note = ord.note ? `<div style="font-style:italic; color:#d35400; font-size:0.85em; margin-top:3px;">Note: ${ord.note}</div>` : "";
-            document.getElementById('history-list').innerHTML += `<div class="timeline-item"><div class="timeline-time">${ord.orario}</div><div class="timeline-user">${ord.cliente}</div><div class="timeline-content">${piattiList}${note}</div></div>`;
+            let piattiList = ""; if(ord.items) piattiList = ord.items.map(i => `${i.qty} ${i.nome}`).join(", ");
+            document.getElementById('history-list').innerHTML += `<div class="timeline-item"><div class="timeline-time">${ord.orario}</div><div><strong>${ord.cliente}</strong>: ${piattiList}</div></div>`;
         });
         document.getElementById('history-overlay').style.display = 'flex';
     }
 
     function stampaOrdine(ordineString) {
         const ordine = JSON.parse(decodeURIComponent(ordineString));
-        let c = `<div style="font-family:monospace;width:300px;padding:10px;border:1px solid black;"><h2 style="text-align:center;margin:0">Mela Stregata</h2><p style="text-align:center;margin:5px 0 15px 0">${ordine.orario}</p><div style="border-bottom:1px dashed black"></div><p><strong>Cli:</strong> ${ordine.cliente}</p><p><strong>Tipo:</strong> ${ordine.tipo.toUpperCase()} ${ordine.tavolo ? '('+ordine.tavolo+')' : ''}</p><div style="border-bottom:1px dashed black;margin:10px 0"></div><h3>ORDINE:</h3><ul style="padding-left:20px">`;
-        ordine.items.forEach(i => { c += `<li>${i.qty}x ${i.nome}</li>`; });
-        c += `</ul>`; if(ordine.note) c += `<p><strong>NOTE:</strong> ${ordine.note}</p>`;
-        c += `<div style="border-bottom:1px dashed black;margin:10px 0"></div><h3 style="text-align:right">TOT: € ${parseFloat(ordine.totale).toFixed(2)}</h3></div>`;
+        let c = `<div style="font-family:monospace;width:300px;padding:10px;"><h3 style="text-align:center;margin:0">Mela Stregata</h3><p style="text-align:center;">${ordine.orario}</p><hr><p><strong>${ordine.cliente}</strong> (${ordine.telefono})</p><p>${ordine.tipo.toUpperCase()} ${ordine.tavolo || ''}</p><hr><ul style="padding-left:15px;">`;
+        ordine.items.forEach(i => { c += `<li>${i.qty} x ${i.nome}</li>`; });
+        c += `</ul>`; if(ordine.note) c+=`<p>NOTE: ${ordine.note}</p>`;
+        c += `<hr><h3 style="text-align:right">TOT: € ${parseFloat(ordine.totale).toFixed(2)}</h3></div>`;
         const w = window.open('','','height=600,width=400'); w.document.write('<html><body>'+c+'</body></html>'); w.document.close(); w.focus(); setTimeout(()=>{w.print();w.close()},500);
     }
 
-    function eliminaSingolo(id) { if(confirm("Eliminare SOLO questo ordine?")) { db.ref('ordini/' + id).remove(); } }
+    function eliminaSingolo(id) { if(confirm("Eliminare ordine?")) { db.ref('ordini/' + id).remove(); } }
     function scaricaExcel() {
         if (Object.keys(globalRawData).length === 0) { alert("Nessun dato."); return; }
-        let c = "data:text/csv;charset=utf-8,\uFEFFOrario,Cliente,Telefono,Tipo,Tavolo,Persone,Piatti,Note,Totale\n";
-        Object.values(globalRawData).forEach(o => { if(!o.items)return; c += [o.orario, o.cliente, o.telefono, o.tipo, o.tavolo||"-", o.coperti||"-", `"${o.items.map(i=>`${i.qty}x ${i.nome}`).join(" | ")}"`, `"${(o.note||"").replace(/,/g," ")}"`, (o.totale||0).toFixed(2)].join(",") + "\n"; });
+        let c = "data:text/csv;charset=utf-8,\uFEFFOrario,Cliente,Telefono,Tipo,Totale,Dettagli\n";
+        Object.values(globalRawData).forEach(o => { if(!o.items)return; c += [o.orario, o.cliente, o.telefono, o.tipo, (o.totale||0).toFixed(2), `"${o.items.map(i=>`${i.qty} ${i.nome}`).join(", ")}"`].join(",") + "\n"; });
         const l = document.createElement("a"); l.setAttribute("href", encodeURI(c)); l.setAttribute("download", "report.csv"); document.body.appendChild(l); l.click(); document.body.removeChild(l);
     }
 
@@ -305,21 +376,18 @@
             contorni: document.getElementById('menu-contorni').value,
             insalatone: document.getElementById('menu-insalatone').value,
             pizze: document.getElementById('menu-pizze').value,
-            
-            // Salvataggio Prezzi
-            prezzo_primi: parseFloat(document.getElementById('price-primi').value) || 5,
-            prezzo_secondi: parseFloat(document.getElementById('price-secondi').value) || 5,
-            prezzo_contorni: parseFloat(document.getElementById('price-contorni').value) || 3,
-            prezzo_insalatone: parseFloat(document.getElementById('price-insalatone').value) || 6,
-            prezzo_pizze: parseFloat(document.getElementById('price-pizze').value) || 7,
-            prezzo_combo: parseFloat(document.getElementById('price-combo').value) || 7,
-
+            prezzo_primi: parseFloat(document.getElementById('price-primi').value)||5,
+            prezzo_secondi: parseFloat(document.getElementById('price-secondi').value)||5,
+            prezzo_contorni: parseFloat(document.getElementById('price-contorni').value)||3,
+            prezzo_insalatone: parseFloat(document.getElementById('price-insalatone').value)||6,
+            prezzo_pizze: parseFloat(document.getElementById('price-pizze').value)||7,
+            prezzo_combo: parseFloat(document.getElementById('price-combo').value)||7,
             pizze_esaurite: document.getElementById('pizze-soldout').checked,
             blocca_ordini: document.getElementById('blocca-ordini').checked
         });
-        alert("Menu e Prezzi Pubblicati!");
+        alert("Menu Aggiornato!");
     }
-    function cancellaTutto() { if(confirm("ATTENZIONE: Cancellare TUTTI gli ordini?")) { db.ref('ordini').remove(); location.reload(); } }
+    function cancellaTutto() { if(confirm("RESET TOTALE GIORNATA?")) { db.ref('ordini').remove(); location.reload(); } }
 </script>
 </body>
 </html>
