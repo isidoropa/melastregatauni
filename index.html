@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mela Stregata</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     
     <style>
         :root {
-            --brand-green: #416058;
+            --brand-green: #324a3e; /* IL COLORE DEL TUO LOGO */
+            --brand-cream: #f0eee6; /* IL COLORE DEL TESTO LOGO */
             --accent: #e67e22;
             --text-dark: #2d3436;
             --bg-card: #ffffff;
@@ -19,14 +20,88 @@
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        body { font-family: 'Poppins', sans-serif; background-color: var(--brand-green); margin: 0; padding: 0; color: var(--text-dark); padding-bottom: 120px; }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: var(--brand-green); 
+            margin: 0; padding: 0; 
+            color: var(--text-dark); 
+            padding-bottom: 120px; 
+        }
 
-        .hero-header { position: relative; height: 180px; overflow: hidden; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
-        .hero-img { width: 100%; height: 100%; object-fit: cover; }
+        /* --- NUOVO HEADER STILE LOGO --- */
+        .brand-header {
+            background-color: var(--brand-green);
+            color: var(--brand-cream);
+            padding: 30px 20px 50px 20px; /* Padding sotto extra per sovrapposizione card */
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-sup {
+            font-family: 'Poppins', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-size: 0.7em;
+            margin-bottom: 10px;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 5px;
+        }
+
+        /* Il quadrato con la mela (Disegnato in CSS/SVG) */
+        .logo-icon-box {
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--brand-cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; position: relative; top: -40px; }
+        .logo-icon-svg {
+            width: 30px;
+            height: 30px;
+            fill: none;
+            stroke: var(--brand-cream);
+            stroke-width: 2;
+        }
 
-        .card { background: var(--bg-card); border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .brand-main {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2em;
+            line-height: 0.9;
+            text-align: left;
+        }
+        .brand-main span { display: block; }
+        .brand-main .thin { font-weight: 400; font-style: italic; font-size: 0.8em;} /* Per variare lo stile se vuoi */
+
+        .brand-sub {
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.55em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 8px;
+            border-top: 1px solid rgba(240, 238, 230, 0.3);
+            padding-top: 8px;
+            width: 100%;
+            max-width: 250px;
+        }
+
+        /* --------------------------- */
+        
+        .container { max-width: 600px; margin: 0 auto; padding: 0 20px; position: relative; top: -30px; }
+
+        .card { background: var(--bg-card); border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); margin-bottom: 20px; }
 
         h2 { margin: 0 0 5px 0; color: var(--brand-green); font-size: 1.6em; }
         h3 { font-size: 1.2em; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; color: var(--text-dark); }
@@ -73,17 +148,28 @@
         <p style="color:#666; font-size:1.1em;">Al momento non accettiamo nuovi ordini.<br>Riprova più tardi.</p>
     </div>
 
-    <div class="hero-header">
-        <img src="banner.jpg" alt="Mensa" class="hero-img" onerror="this.src='https://via.placeholder.com/800x400/416058/ffffff?text=Mela+Stregata'">
+    <div class="brand-header">
+        <div class="brand-sup">AVERSA</div>
+        <div class="logo-container">
+            <div class="logo-icon-box">
+                <svg class="logo-icon-svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 20.94c1.5 0 3-1.06 4-1.06 3 0 6 2 6 2s-1.91-9-6-11a4.37 4.37 0 0 0-5 2c-2-2-5-2-5 2s-6 2-6 11c0 0 3-2 6-2 1 0 2.5 1.06 4 1.06Z"></path>
+                    <path d="M10 2c1 2 2.5 2 2.5 2"></path>
+                </svg>
+            </div>
+            <div class="brand-main">
+                MELA<br>STREGATA
+            </div>
+        </div>
+        <div class="brand-sub">CUCINA · TRADIZIONI · SEGRETI</div>
     </div>
 
     <div class="container">
         
         <div class="card">
             <div style="text-align:center;">
-                <h2>Mela Stregata</h2>
-                <p style="color:#888; margin:5px 0;">Locale convenzionato Adisurc</p>
-                <a href="tel:123456789" style="color:var(--accent); text-decoration:none; font-weight:600;">📞 Chiama Info</a>
+                <p style="color:#888; margin:0 0 10px 0; font-size:0.9em;">Mensa Universitaria</p>
+                <a href="tel:123456789" style="color:var(--accent); text-decoration:none; font-weight:600; display:inline-block; border:1px solid var(--accent); padding:5px 15px; border-radius:20px; font-size:0.9em;">📞 Chiama Info</a>
             </div>
             
             <hr style="border:0; border-top:1px dashed #eee; margin:15px 0;">
@@ -361,17 +447,15 @@
     window.sendOrder = function() {
         if(isPanic) return;
 
-        // --- CONTROLLO ORARIO (NUOVO) ---
         const now = new Date();
         const curMins = now.getHours() * 60 + now.getMinutes();
-        const start = 9 * 60;        // 09:00
-        const end = 23 * 60 + 15;    // 12:15 12 * 60 + 15
+        const start = 9 * 60;
+        const end = 12 * 60 + 15;
 
         if (curMins < start || curMins > end) {
             alert("⚠️ ATTENZIONE: Le ordinazioni sono aperte solo dalle 09:00 alle 12:15.");
             return;
         }
-        // --------------------------------
 
         const nome = document.getElementById('nome').value.trim();
         const tel = document.getElementById('telefono').value.trim();
@@ -432,5 +516,3 @@
 </script>
 </body>
 </html>
-
-
