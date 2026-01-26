@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -18,25 +19,60 @@
         
         input, textarea { width: 100%; padding: 12px; margin: 5px 0 15px 0; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
         button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1.1em; cursor: pointer; margin-top: 10px; }
-        .print-btn { background: #636e72; margin-top: 5px; font-size: 0.9em; padding: 10px; }
+        .print-btn { background: #636e72; margin-top: 10px; font-size: 0.9em; padding: 10px; width: 100%; }
         .delete-btn { background: #d63031; margin-top: 30px; }
         .logout-btn { background: #636e72; font-size: 0.9em; padding: 10px; margin-bottom: 20px; }
         
         .menu-section { border: 1px solid #eee; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid var(--primary); }
-        .card { background: #fff; padding: 15px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         
-        .tavolo-group { background: #fffdf2; border: 1px solid #ffeeba; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
-        .tavolo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 2px solid #eecd64; padding-bottom: 5px; }
-        .tavolo-name { font-weight: 800; color: #e1b12c; text-transform: uppercase; font-size: 1.2em; }
-        .tavolo-count { background: #2d3436; color: white; padding: 5px 10px; border-radius: 20px; font-size: 0.9em; font-weight: bold; }
-        .order-note { background: #ffeaa7; color: #d35400; padding: 8px; border-radius: 6px; font-size: 0.9em; margin-top: 10px; font-style: italic; border-left: 3px solid #fdcb6e; }
-
-        /* Checkbox Pizze Esaurite */
-        .soldout-check-container {
-            background: #ffcccc; padding: 10px; border-radius: 8px; border: 2px solid #d63031;
-            display: flex; align-items: center; gap: 10px; color: #c0392b; font-weight: bold;
+        /* CARD ORDINI AUTOMATICI */
+        .card { 
+            background: #fff; padding: 15px; margin-bottom: 10px; border-radius: 8px; 
+            box-shadow: 0 4px 5px rgba(0,0,0,0.05); transition: all 0.5s ease;
+            position: relative; border: 1px solid #eee;
         }
+        .card-fresh { background-color: #fff9c4; border: 2px solid #f1c40f !important; animation: pulseNew 2s infinite; }
+        .card-old { background-color: #f5f6fa; opacity: 0.7; border-left-color: #b2bec3 !important; }
+        .badge-fresh { position: absolute; top: -10px; right: -5px; background: #d63031; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.8em; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 10; }
+        @keyframes pulseNew { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+
+        /* TAVOLI */
+        .tavolo-group { background: #fffdf2; border: 1px solid #ffeeba; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        .tavolo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 2px solid #eecd64; padding-bottom: 5px; flex-wrap: wrap; gap: 10px; }
+        .tavolo-name { font-weight: 800; color: #e1b12c; text-transform: uppercase; font-size: 1.2em; }
+        
+        .tavolo-info-btn { 
+            background: #2d3436; color: white; padding: 5px 12px; border-radius: 20px; 
+            font-size: 0.8em; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; border:none; margin:0;
+        }
+        .tavolo-info-btn:hover { background: #000; }
+
+        .order-note { background: #ffeaa7; color: #d35400; padding: 8px; border-radius: 6px; font-size: 0.9em; margin-top: 10px; font-style: italic; border-left: 3px solid #fdcb6e; }
+        .soldout-check-container { background: #ffcccc; padding: 10px; border-radius: 8px; border: 2px solid #d63031; display: flex; align-items: center; gap: 10px; color: #c0392b; font-weight: bold; }
         .soldout-check-container input { width: 20px; height: 20px; margin: 0; }
+
+        /* MODAL CRONOLOGIA */
+        #history-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 10000;
+            display: none; justify-content: center; align-items: center;
+        }
+        #history-box {
+            background: white; width: 90%; max-width: 450px;
+            border-radius: 15px; padding: 25px; max-height: 80vh; overflow-y: auto;
+            position: relative;
+        }
+        .timeline-item {
+            border-left: 2px solid #dfe6e9; margin-left: 10px; padding-left: 20px;
+            padding-bottom: 20px; position: relative;
+        }
+        .timeline-item::before {
+            content: ''; position: absolute; left: -6px; top: 0;
+            width: 10px; height: 10px; background: var(--primary); border-radius: 50%;
+        }
+        .timeline-time { font-weight: bold; color: var(--primary); font-size: 0.9em; }
+        .timeline-user { font-weight: 600; color: #2d3436; margin-bottom: 5px; }
+        .timeline-content { background: #f1f2f6; padding: 10px; border-radius: 8px; font-size: 0.9em; }
 
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(65, 96, 88, 0.95); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         #login-box { background: white; padding: 40px; border-radius: 15px; width: 300px; text-align: center; }
@@ -55,23 +91,28 @@
     </div>
 </div>
 
+<div id="history-overlay">
+    <div id="history-box">
+        <button onclick="document.getElementById('history-overlay').style.display='none'" style="position:absolute; top:10px; right:15px; background:none; color:#333; font-size:1.5em; padding:0; width:auto; margin:0;">&times;</button>
+        <h2 style="margin-top:0; color:var(--dark)">Cronologia Tavolo</h2>
+        <h3 id="history-title" style="color:var(--primary)"></h3>
+        <div id="history-list" style="margin-top:20px;"></div>
+    </div>
+</div>
+
 <div class="container" id="admin-content" style="display:none;">
     <button class="logout-btn" onclick="logout()">Esci</button>
     <h1>Gestione Ristorante</h1>
     
     <div class="menu-section">
         <h2>Imposta Menu</h2>
-        <p style="font-size:0.8em; color:#666; text-align:center;">💡 TIP: Scrivi <strong>[X]</strong> davanti a un piatto per segnarlo ESAURITO (es. <em>[X] Lasagna</em>)</p>
-        
+        <p style="font-size:0.8em; color:#666; text-align:center;">💡 TIP: Scrivi <strong>[X]</strong> per ESAURITO</p>
         <div class="menu-grid">
             <h3>🍝 Primi</h3> <textarea id="menu-primi" rows="2"></textarea>
             <h3>🍖 Secondi</h3> <textarea id="menu-secondi" rows="2"></textarea>
             <h3>🥗 Contorni</h3> <textarea id="menu-contorni" rows="2"></textarea>
             <h3 style="color:#27ae60;">🥬 Insalatone</h3> <textarea id="menu-insalatone" rows="2"></textarea>
-            
-            <h3>🍕 Pizze (Info)</h3> 
-            <textarea id="menu-pizze" rows="2"></textarea>
-            
+            <h3>🍕 Pizze (Info)</h3> <textarea id="menu-pizze" rows="2"></textarea>
             <div class="soldout-check-container">
                 <input type="checkbox" id="pizze-soldout">
                 <label for="pizze-soldout">🚫 Segna TUTTE le Pizze come ESAURITE</label>
@@ -81,6 +122,12 @@
     </div>
 
     <hr style="border:0; border-top:1px solid #eee; margin:30px 0;">
+
+    <div style="display:flex; justify-content:center; gap:15px; margin-bottom:20px; font-size:0.8em;">
+        <div style="display:flex; align-items:center;"><div style="width:15px; height:15px; background:#fff9c4; border:2px solid #f1c40f; margin-right:5px;"></div> < 5 Min</div>
+        <div style="display:flex; align-items:center;"><div style="width:15px; height:15px; background:#fff; border:1px solid #ccc; margin-right:5px;"></div> Standard</div>
+        <div style="display:flex; align-items:center;"><div style="width:15px; height:15px; background:#f5f6fa; margin-right:5px;"></div> > 30 Min</div>
+    </div>
 
     <h2>Ordini in Arrivo</h2>
     <div id="status-db" style="text-align:center; color:gray; font-size:0.8em; margin-bottom:10px;">Connessione...</div>
@@ -96,8 +143,7 @@
 
 <script>
     // ***********************************************************
-    // 👇 INCOLLA LE TUE CHIAVI FIREBASE QUI SOTTO 👇
-    // ***********************************************************
+    // 
    const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
         authDomain: "melastregatauni.firebaseapp.com",
@@ -113,6 +159,11 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const auth = firebase.auth();
+
+    // Variabile globale per salvare gli ordini grezzi per la cronologia
+    let globalOrdersByTable = {};
+
+    setInterval(() => { if(auth.currentUser) caricaDati(); }, 60000);
 
     auth.onAuthStateChanged((user) => {
         if (user) {
@@ -144,7 +195,6 @@
                 document.getElementById('menu-contorni').value = m.contorni || "";
                 document.getElementById('menu-insalatone').value = m.insalatone || "";
                 document.getElementById('menu-pizze').value = m.pizze || "";
-                // Carica stato checkbox pizze
                 document.getElementById('pizze-soldout').checked = m.pizze_esaurite || false;
             }
         });
@@ -159,25 +209,33 @@
         const divAsporto = document.getElementById('lista-asporto');
         const divTavoli = document.getElementById('lista-tavoli');
         divAsporto.innerHTML = ""; divTavoli.innerHTML = "";
+        
+        // Reset variabile globale cronologia
+        globalOrdersByTable = {};
 
         if(!data) { divAsporto.innerHTML = "<p style='color:#999; text-align:center;'>Nessun ordine.</p>"; return; }
 
         let gruppiTavoli = {};
         let contaPersonePerTavolo = {}; 
+        const now = Date.now();
 
-        // Convertiamo l'oggetto ordini in array per poter passare l'oggetto completo al bottone stampa
         Object.entries(data).forEach(([key, ordine]) => {
             if (!ordine.items && !ordine.piatti) return; 
             
-            // Salviamo la chiave per riferimento (opzionale)
-            ordine.id = key;
-
+            // --- GESTIONE DATI PER CRONOLOGIA E CONTEGGIO ---
             if (ordine.tipo === 'tavolo' && ordine.tavolo) {
                 const nomeTav = ordine.tavolo;
+                
+                // 1. Conta persone
                 if (!contaPersonePerTavolo[nomeTav]) { contaPersonePerTavolo[nomeTav] = 0; }
                 contaPersonePerTavolo[nomeTav] += (ordine.coperti || 0);
+
+                // 2. Salva ordine per cronologia
+                if (!globalOrdersByTable[nomeTav]) { globalOrdersByTable[nomeTav] = []; }
+                globalOrdersByTable[nomeTav].push(ordine);
             }
 
+            // --- RENDERING CARD (VISUALE AGGREGATA/CARD) ---
             let piattiHTML = "";
             if(ordine.items) {
                 piattiHTML = ordine.items.map(i => `<span>• <strong>${i.qty}x</strong> ${i.nome}</span>`).join("<br>");
@@ -187,12 +245,24 @@
             const totaleHTML = ordine.totale ? `<div style="margin-top:10px; font-size:1.1em; color:#27ae60; border-top:1px solid #eee; padding-top:5px;">💰 <strong>Totale: € ${parseFloat(ordine.totale).toFixed(2)}</strong></div>` : "";
             const copertiOrdine = (ordine.tipo === 'tavolo' && ordine.coperti) ? `<span style="font-size:0.8em; background:#eee; padding:2px 6px; border-radius:4px; margin-left:5px;">👤 +${ordine.coperti}</span>` : "";
             const noteHTML = ordine.note ? `<div class="order-note">📝 Note: ${ordine.note}</div>` : "";
-
-            // Encode dell'ordine per passarlo alla funzione di stampa
             const ordineString = encodeURIComponent(JSON.stringify(ordine));
 
+            // Tempo e Colore
+            const orderTime = ordine.timestamp || 0;
+            const diffMinutes = (now - orderTime) / 1000 / 60;
+            let cardClass = "card";
+            let badgeHTML = "";
+
+            if (diffMinutes < 5) {
+                cardClass += " card-fresh";
+                badgeHTML = '<div class="badge-fresh">NUOVO 🔥</div>';
+            } else if (diffMinutes > 30) {
+                cardClass += " card-old";
+            }
+
             const htmlCard = `
-                <div class="card" style="border-left: 5px solid ${ordine.tipo === 'asporto' ? '#27ae60' : '#2980b9'} !important;">
+                <div class="${cardClass}" style="border-left: 5px solid ${ordine.tipo === 'asporto' ? '#27ae60' : '#2980b9'};">
+                    ${badgeHTML}
                     <div style="font-size:1.1em;">
                         <strong>${ordine.cliente}</strong> 
                         <span style="font-size:0.9em; color:#666;">(${ordine.orario})</span>
@@ -214,60 +284,86 @@
             }
         });
 
+        // --- STAMPA GRUPPI TAVOLI ---
         for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
             const totalePersone = contaPersonePerTavolo[tavolo] || 0;
+            
+            // Bottone Cronologia nel titolo
+            const btnCronologia = `<button class="tavolo-info-btn" onclick="apriCronologia('${tavolo}')">🕒 CRONOLOGIA</button>`;
+
             divTavoli.innerHTML += `
                 <div class="tavolo-group">
                     <div class="tavolo-header">
                         <span class="tavolo-name">TAVOLO: ${tavolo}</span>
-                        <span class="tavolo-count">TOTALE POSTI: ${totalePersone} 👤</span>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            ${btnCronologia}
+                            <span class="tavolo-count">TOT: ${totalePersone} 👤</span>
+                        </div>
                     </div>
                     ${cards.join("")}
                 </div>`;
         }
     }
 
+    // --- FUNZIONE CRONOLOGIA (PopUp) ---
+    function apriCronologia(tavolo) {
+        const ordiniTavolo = globalOrdersByTable[tavolo];
+        if (!ordiniTavolo) return;
+
+        // Ordina per timestamp (dal più vecchio al più recente)
+        ordiniTavolo.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+        const container = document.getElementById('history-list');
+        const title = document.getElementById('history-title');
+        
+        title.innerText = "Tavolo " + tavolo;
+        container.innerHTML = "";
+
+        ordiniTavolo.forEach(ord => {
+            let piattiList = "";
+            if(ord.items) piattiList = ord.items.map(i => `${i.qty}x ${i.nome}`).join(", ");
+            
+            const note = ord.note ? `<div style="font-style:italic; color:#d35400; font-size:0.85em; margin-top:3px;">Note: ${ord.note}</div>` : "";
+
+            const htmlItem = `
+                <div class="timeline-item">
+                    <div class="timeline-time">${ord.orario}</div>
+                    <div class="timeline-user">${ord.cliente} (${ord.coperti ? '+' + ord.coperti + ' pers.' : ''})</div>
+                    <div class="timeline-content">
+                        ${piattiList}
+                        ${note}
+                    </div>
+                </div>
+            `;
+            container.innerHTML += htmlItem;
+        });
+
+        document.getElementById('history-overlay').style.display = 'flex';
+    }
+
     function stampaOrdine(ordineString) {
         const ordine = JSON.parse(decodeURIComponent(ordineString));
-        
         let contenuto = `
             <div style="font-family: monospace; width: 300px; padding: 10px; border: 1px solid black;">
                 <h2 style="text-align:center; margin:0;">Mela Stregata</h2>
                 <p style="text-align:center; margin:5px 0 15px 0;">${ordine.orario} - ${new Date().toLocaleDateString()}</p>
                 <div style="border-bottom: 1px dashed black;"></div>
                 <p><strong>Cliente:</strong> ${ordine.cliente}</p>
-                <p><strong>Tel:</strong> ${ordine.telefono}</p>
                 <p><strong>Tipo:</strong> ${ordine.tipo.toUpperCase()} ${ordine.tavolo ? '('+ordine.tavolo+')' : ''}</p>
-                ${ordine.coperti ? '<p><strong>Persone:</strong> '+ordine.coperti+'</p>' : ''}
                 <div style="border-bottom: 1px dashed black; margin: 10px 0;"></div>
                 <h3>ORDINE:</h3>
                 <ul style="padding-left: 20px;">
         `;
-
-        ordine.items.forEach(item => {
-            contenuto += `<li>${item.qty}x ${item.nome}</li>`;
-        });
-
+        ordine.items.forEach(item => { contenuto += `<li>${item.qty}x ${item.nome}</li>`; });
         contenuto += `</ul>`;
-
-        if(ordine.note) {
-            contenuto += `<p><strong>NOTE:</strong> ${ordine.note}</p>`;
-        }
-
-        contenuto += `
-                <div style="border-bottom: 1px dashed black; margin: 10px 0;"></div>
-                <h3 style="text-align:right;">TOTALE: € ${parseFloat(ordine.totale).toFixed(2)}</h3>
-                <div style="text-align:center; margin-top:20px;">Grazie!</div>
-            </div>
-        `;
-
-        const finestraStampa = window.open('', '', 'height=600,width=400');
-        finestraStampa.document.write('<html><head><title>Stampa Ordine</title></head><body>');
-        finestraStampa.document.write(contenuto);
-        finestraStampa.document.write('</body></html>');
-        finestraStampa.document.close();
-        finestraStampa.focus();
-        setTimeout(() => { finestraStampa.print(); finestraStampa.close(); }, 500);
+        if(ordine.note) { contenuto += `<p><strong>NOTE:</strong> ${ordine.note}</p>`; }
+        contenuto += `<div style="border-bottom: 1px dashed black; margin: 10px 0;"></div><h3 style="text-align:right;">TOT: € ${parseFloat(ordine.totale).toFixed(2)}</h3></div>`;
+        
+        const win = window.open('', '', 'height=600,width=400');
+        win.document.write('<html><body>' + contenuto + '</body></html>');
+        win.document.close();
+        win.focus();
+        setTimeout(() => { win.print(); win.close(); }, 500);
     }
 
     function salvaMenu() {
@@ -277,16 +373,13 @@
             contorni: document.getElementById('menu-contorni').value,
             insalatone: document.getElementById('menu-insalatone').value,
             pizze: document.getElementById('menu-pizze').value,
-            pizze_esaurite: document.getElementById('pizze-soldout').checked // Salva stato pizze
+            pizze_esaurite: document.getElementById('pizze-soldout').checked
         });
         alert("Menu Pubblicato!");
     }
 
     function cancellaTutto() {
-        if(confirm("Sei sicuro? Cancellerai TUTTI gli ordini.")) {
-            db.ref('ordini').remove();
-            location.reload();
-        }
+        if(confirm("Sei sicuro?")) { db.ref('ordini').remove(); location.reload(); }
     }
 </script>
 </body>
