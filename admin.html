@@ -18,12 +18,18 @@
         
         input, textarea { width: 100%; padding: 12px; margin: 5px 0 15px 0; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
         button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1.1em; cursor: pointer; margin-top: 10px; }
+        
         .print-btn { background: #636e72; margin-top: 10px; font-size: 0.9em; padding: 10px; width: 100%; }
-        .delete-btn { background: #d63031; margin-top: 30px; }
+        
+        /* TASTI AZIONI GLOBALI */
+        .global-actions { display: flex; gap: 10px; margin-top: 30px; }
+        .excel-btn { background: #27ae60; flex: 1; }
+        .reset-btn { background: #d63031; flex: 1; }
         .logout-btn { background: #636e72; font-size: 0.9em; padding: 10px; margin-bottom: 20px; }
         
         .menu-section { border: 1px solid #eee; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid var(--primary); }
         
+        /* CARD ORDINI */
         .card { 
             background: #fff; padding: 15px; margin-bottom: 10px; border-radius: 8px; 
             box-shadow: 0 4px 5px rgba(0,0,0,0.05); transition: all 0.5s ease;
@@ -31,32 +37,44 @@
         }
         .card-fresh { background-color: #fff9c4; border: 2px solid #f1c40f !important; animation: pulseNew 2s infinite; }
         .card-old { background-color: #f5f6fa; opacity: 0.7; border-left-color: #b2bec3 !important; }
-        .badge-fresh { position: absolute; top: -10px; right: -5px; background: #d63031; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.8em; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 10; }
+        .badge-fresh { position: absolute; top: -10px; right: 25px; background: #d63031; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.8em; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 10; }
         @keyframes pulseNew { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+
+        /* TASTO CANCELLA SINGOLO */
+        .btn-delete-single {
+            position: absolute; top: 10px; right: 10px;
+            background: #e74c3c; color: white;
+            width: 25px; height: 25px; border-radius: 50%;
+            border: none; font-weight: bold; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9em; padding: 0; margin: 0;
+        }
+        .btn-delete-single:hover { background: #c0392b; }
 
         .tavolo-group { background: #fffdf2; border: 1px solid #ffeeba; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
         .tavolo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 2px solid #eecd64; padding-bottom: 5px; flex-wrap: wrap; gap: 10px; }
         .tavolo-name { font-weight: 800; color: #e1b12c; text-transform: uppercase; font-size: 1.2em; }
-        
-        .tavolo-info-btn { 
-            background: #2d3436; color: white; padding: 5px 12px; border-radius: 20px; 
-            font-size: 0.8em; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; border:none; margin:0;
-        }
-        .tavolo-info-btn:hover { background: #000; }
+        .tavolo-info-btn { background: #2d3436; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; border:none; margin:0; }
 
         .order-note { background: #ffeaa7; color: #d35400; padding: 8px; border-radius: 6px; font-size: 0.9em; margin-top: 10px; font-style: italic; border-left: 3px solid #fdcb6e; }
-        .soldout-check-container { background: #ffcccc; padding: 10px; border-radius: 8px; border: 2px solid #d63031; display: flex; align-items: center; gap: 10px; color: #c0392b; font-weight: bold; }
-        .soldout-check-container input { width: 20px; height: 20px; margin: 0; }
+        
+        /* CHECKBOX CONTROLLI */
+        .control-check-container { 
+            background: #eee; padding: 10px; border-radius: 8px; margin-top: 10px;
+            display: flex; align-items: center; gap: 10px; font-weight: bold; color: #555;
+        }
+        .panic-mode { background: #ffcccc; border: 2px solid #d63031; color: #c0392b; }
         
         .no-orders-msg { color: #999; text-align: center; font-style: italic; padding: 10px; }
+        #revenue-box { background: #27ae60; color: white; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px; font-size: 1.2em; box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3); }
 
-        /* BOX INCASSO */
-        #revenue-box {
-            background: #27ae60; color: white; padding: 15px; border-radius: 10px;
-            text-align: center; margin-bottom: 20px; font-size: 1.2em;
-            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
-        }
-        
+        /* MONITOR CONNESSIONE */
+        #connection-status { position: fixed; top: 10px; right: 10px; z-index: 10001; background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 8px; }
+        .led { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .led-on { background: #2ecc71; box-shadow: 0 0 8px #2ecc71; }
+        .led-off { background: #e74c3c; box-shadow: 0 0 8px #e74c3c; animation: flash 1s infinite; }
+        @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
         /* Modal Cronologia */
         #history-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: none; justify-content: center; align-items: center; }
         #history-box { background: white; width: 90%; max-width: 450px; border-radius: 15px; padding: 25px; max-height: 80vh; overflow-y: auto; position: relative; }
@@ -72,6 +90,11 @@
     </style>
 </head>
 <body>
+
+<div id="connection-status">
+    <div id="status-led" class="led led-off"></div>
+    <span id="status-text">Connessione...</span>
+</div>
 
 <div id="login-overlay">
     <div id="login-box">
@@ -111,9 +134,15 @@
             <h3>🥗 Contorni</h3> <textarea id="menu-contorni" rows="2"></textarea>
             <h3 style="color:#27ae60;">🥬 Insalatone</h3> <textarea id="menu-insalatone" rows="2"></textarea>
             <h3>🍕 Pizze (Info)</h3> <textarea id="menu-pizze" rows="2"></textarea>
-            <div class="soldout-check-container">
+            
+            <div class="control-check-container">
                 <input type="checkbox" id="pizze-soldout">
-                <label for="pizze-soldout">🚫 Segna TUTTE le Pizze come ESAURITE</label>
+                <label for="pizze-soldout">🚫 Pizze ESAURITE</label>
+            </div>
+            
+            <div class="control-check-container panic-mode">
+                <input type="checkbox" id="blocca-ordini">
+                <label for="blocca-ordini">⛔️ BLOCCA TUTTI GLI ORDINI (Emergenza)</label>
             </div>
         </div>
         <button onclick="salvaMenu()">PUBBLICA MENU</button>
@@ -136,7 +165,10 @@
     <h3>🍽️ Tavoli</h3>
     <div id="lista-tavoli"></div>
 
-    <button class="delete-btn" onclick="cancellaTutto()">🗑️ RESET GIORNATA</button>
+    <div class="global-actions">
+        <button class="excel-btn" onclick="scaricaExcel()">📥 SCARICA REPORT (.CSV)</button>
+        <button class="delete-btn" style="margin-top:0;" onclick="cancellaTutto()">🗑️ RESET GIORNATA</button>
+    </div>
 </div>
 
 <audio id="notification-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-positive-interface-beep-221.mp3"></audio>
@@ -161,11 +193,24 @@
     const db = firebase.database();
     const auth = firebase.auth();
     let globalOrdersByTable = {};
+    let globalRawData = {}; // Serve per l'export Excel
     
-    // Variabili per l'audio
     let audioEnabled = false;
-    let lastOrderCount = 0; // Serve per capire se è arrivato un nuovo ordine
+    let lastOrderCount = 0;
     let isFirstLoad = true;
+
+    // Monitoraggio Connessione
+    db.ref(".info/connected").on("value", (snap) => {
+        if (snap.val() === true) {
+            document.getElementById('status-led').className = "led led-on";
+            document.getElementById('status-text').innerText = "ONLINE";
+            document.getElementById('status-text').style.color = "#27ae60";
+        } else {
+            document.getElementById('status-led').className = "led led-off";
+            document.getElementById('status-text').innerText = "OFFLINE";
+            document.getElementById('status-text').style.color = "#c0392b";
+        }
+    });
 
     setInterval(() => { if(auth.currentUser) caricaDati(); }, 60000);
 
@@ -187,28 +232,17 @@
             document.getElementById('login-error').style.display = 'block';
         });
     }
-
     function logout() { auth.signOut().then(() => location.reload()); }
     
-    // --- GESTIONE AUDIO ---
     function abilitaAudio() {
         const audio = document.getElementById('notification-sound');
         audio.play().then(() => {
-            audio.pause();
-            audio.currentTime = 0;
-            audioEnabled = true;
-            document.getElementById('btn-audio').style.display = 'none'; // Nascondi bottone dopo click
-            alert("🔊 Audio Attivato! Sentirai un suono ai nuovi ordini.");
+            audio.pause(); audio.currentTime = 0; audioEnabled = true;
+            document.getElementById('btn-audio').style.display = 'none';
+            alert("🔊 Audio Attivato!");
         }).catch(e => alert("Impossibile attivare audio: " + e));
     }
-
-    function playSound() {
-        if(audioEnabled) {
-            const audio = document.getElementById('notification-sound');
-            audio.currentTime = 0;
-            audio.play().catch(e => console.log("Audio bloccato dal browser"));
-        }
-    }
+    function playSound() { if(audioEnabled) { const a = document.getElementById('notification-sound'); a.currentTime = 0; a.play().catch(e=>{}); } }
 
     function caricaDati() {
         db.ref('menu').once('value', (s) => {
@@ -220,6 +254,7 @@
                 document.getElementById('menu-insalatone').value = m.insalatone || "";
                 document.getElementById('menu-pizze').value = m.pizze || "";
                 document.getElementById('pizze-soldout').checked = m.pizze_esaurite || false;
+                document.getElementById('blocca-ordini').checked = m.blocca_ordini || false; // Carica Panic Mode
             }
         });
 
@@ -234,11 +269,12 @@
         const divTavoli = document.getElementById('lista-tavoli');
         divAsporto.innerHTML = ""; divTavoli.innerHTML = "";
         globalOrdersByTable = {};
+        globalRawData = data || {};
 
         if(!data) { 
             divAsporto.innerHTML = "<div class='no-orders-msg'>Nessun ordine.</div>"; 
             divTavoli.innerHTML = "<div class='no-orders-msg'>Nessun ordine.</div>"; 
-            document.getElementById('total-revenue').innerText = "€ 0,00"; // Reset Incasso
+            document.getElementById('total-revenue').innerText = "€ 0,00";
             lastOrderCount = 0;
             return; 
         }
@@ -246,23 +282,18 @@
         let gruppiTavoli = {};
         let contaPersonePerTavolo = {}; 
         const now = Date.now();
-        let incassoTotale = 0; // Variabile per sommare
+        let incassoTotale = 0;
         let currentOrderCount = 0;
 
         Object.entries(data).forEach(([key, ordine]) => {
             if (!ordine.items && !ordine.piatti) return; 
             currentOrderCount++;
-
-            // --- SOMMA INCASSO ---
-            if(ordine.totale) {
-                incassoTotale += parseFloat(ordine.totale);
-            }
+            if(ordine.totale) { incassoTotale += parseFloat(ordine.totale); }
 
             if (ordine.tipo === 'tavolo' && ordine.tavolo) {
                 const nomeTav = ordine.tavolo;
                 if (!contaPersonePerTavolo[nomeTav]) { contaPersonePerTavolo[nomeTav] = 0; }
                 contaPersonePerTavolo[nomeTav] += (ordine.coperti || 0);
-                
                 if (!globalOrdersByTable[nomeTav]) { globalOrdersByTable[nomeTav] = []; }
                 globalOrdersByTable[nomeTav].push(ordine);
             }
@@ -292,6 +323,7 @@
 
             const htmlCard = `
                 <div class="${cardClass}" style="border-left: 5px solid ${ordine.tipo === 'asporto' ? '#27ae60' : '#2980b9'};">
+                    <button class="btn-delete-single" onclick="eliminaSingolo('${key}')" title="Elimina Ordine">X</button>
                     ${badgeHTML}
                     <div style="font-size:1.1em;">
                         <strong>${ordine.cliente}</strong> 
@@ -314,21 +346,14 @@
             }
         });
 
-        // --- AGGIORNA INCASSO A VIDEO ---
         document.getElementById('total-revenue').innerText = "€ " + incassoTotale.toFixed(2);
-
-        // --- SUONO NOTIFICA ---
-        // Se non è il primo caricamento e il numero di ordini è aumentato -> SUONA
-        if (!isFirstLoad && currentOrderCount > lastOrderCount) {
-            playSound();
-        }
+        if (!isFirstLoad && currentOrderCount > lastOrderCount) { playSound(); }
         lastOrderCount = currentOrderCount;
         isFirstLoad = false;
 
         for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
             const totalePersone = contaPersonePerTavolo[tavolo] || 0;
             const btnCronologia = `<button class="tavolo-info-btn" onclick="apriCronologia('${tavolo}')">🕒 CRONOLOGIA</button>`;
-
             divTavoli.innerHTML += `
                 <div class="tavolo-group">
                     <div class="tavolo-header">
@@ -341,7 +366,6 @@
                     ${cards.join("")}
                 </div>`;
         }
-
         if(divAsporto.innerHTML === "") { divAsporto.innerHTML = "<div class='no-orders-msg'>Nessun ordine.</div>"; }
         if(divTavoli.innerHTML === "") { divTavoli.innerHTML = "<div class='no-orders-msg'>Nessun ordine.</div>"; }
     }
@@ -350,52 +374,74 @@
         const ordiniTavolo = globalOrdersByTable[tavolo];
         if (!ordiniTavolo) return;
         ordiniTavolo.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-
         const container = document.getElementById('history-list');
-        const title = document.getElementById('history-title');
-        title.innerText = "Tavolo " + tavolo;
+        document.getElementById('history-title').innerText = "Tavolo " + tavolo;
         container.innerHTML = "";
-
         ordiniTavolo.forEach(ord => {
             let piattiList = "";
             if(ord.items) piattiList = ord.items.map(i => `${i.qty}x ${i.nome}`).join(", ");
             const note = ord.note ? `<div style="font-style:italic; color:#d35400; font-size:0.85em; margin-top:3px;">Note: ${ord.note}</div>` : "";
-
-            const htmlItem = `
+            container.innerHTML += `
                 <div class="timeline-item">
                     <div class="timeline-time">${ord.orario}</div>
                     <div class="timeline-user">${ord.cliente} (${ord.coperti ? '+' + ord.coperti + ' pers.' : ''})</div>
                     <div class="timeline-content">${piattiList}${note}</div>
                 </div>`;
-            container.innerHTML += htmlItem;
         });
-
         document.getElementById('history-overlay').style.display = 'flex';
     }
 
     function stampaOrdine(ordineString) {
         const ordine = JSON.parse(decodeURIComponent(ordineString));
-        let contenuto = `
-            <div style="font-family: monospace; width: 300px; padding: 10px; border: 1px solid black;">
-                <h2 style="text-align:center; margin:0;">Mela Stregata</h2>
-                <p style="text-align:center; margin:5px 0 15px 0;">${ordine.orario} - ${new Date().toLocaleDateString()}</p>
-                <div style="border-bottom: 1px dashed black;"></div>
-                <p><strong>Cliente:</strong> ${ordine.cliente}</p>
-                <p><strong>Tipo:</strong> ${ordine.tipo.toUpperCase()} ${ordine.tavolo ? '('+ordine.tavolo+')' : ''}</p>
-                <div style="border-bottom: 1px dashed black; margin: 10px 0;"></div>
-                <h3>ORDINE:</h3>
-                <ul style="padding-left: 20px;">
-        `;
+        let contenuto = `<div style="font-family: monospace; width: 300px; padding: 10px; border: 1px solid black;"><h2 style="text-align:center; margin:0;">Mela Stregata</h2><p style="text-align:center; margin:5px 0 15px 0;">${ordine.orario} - ${new Date().toLocaleDateString()}</p><div style="border-bottom: 1px dashed black;"></div><p><strong>Cliente:</strong> ${ordine.cliente}</p><p><strong>Tipo:</strong> ${ordine.tipo.toUpperCase()} ${ordine.tavolo ? '('+ordine.tavolo+')' : ''}</p><div style="border-bottom: 1px dashed black; margin: 10px 0;"></div><h3>ORDINE:</h3><ul style="padding-left: 20px;">`;
         ordine.items.forEach(item => { contenuto += `<li>${item.qty}x ${item.nome}</li>`; });
         contenuto += `</ul>`;
         if(ordine.note) { contenuto += `<p><strong>NOTE:</strong> ${ordine.note}</p>`; }
         contenuto += `<div style="border-bottom: 1px dashed black; margin: 10px 0;"></div><h3 style="text-align:right;">TOT: € ${parseFloat(ordine.totale).toFixed(2)}</h3></div>`;
-        
         const win = window.open('', '', 'height=600,width=400');
         win.document.write('<html><body>' + contenuto + '</body></html>');
-        win.document.close();
-        win.focus();
-        setTimeout(() => { win.print(); win.close(); }, 500);
+        win.document.close(); win.focus(); setTimeout(() => { win.print(); win.close(); }, 500);
+    }
+
+    // --- NUOVE FUNZIONI (Elimina, Panic, Excel) ---
+    
+    function eliminaSingolo(id) {
+        if(confirm("Sei sicuro di voler eliminare SOLO questo ordine?")) {
+            db.ref('ordini/' + id).remove();
+        }
+    }
+
+    function scaricaExcel() {
+        if (Object.keys(globalRawData).length === 0) { alert("Nessun dato da scaricare."); return; }
+        
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // \uFEFF per i caratteri accentati
+        csvContent += "Orario,Cliente,Telefono,Tipo,Tavolo,Persone,Piatti,Note,Totale\n";
+
+        Object.values(globalRawData).forEach(ord => {
+            if (!ord.items) return;
+            const piattiStr = ord.items.map(i => `${i.qty}x ${i.nome}`).join(" | ");
+            const noteSafe = (ord.note || "").replace(/,/g, " "); // Rimuove virgole per non rompere il CSV
+            const row = [
+                ord.orario,
+                ord.cliente,
+                ord.telefono,
+                ord.tipo,
+                ord.tavolo || "-",
+                ord.coperti || "-",
+                `"${piattiStr}"`, // Virgolette per evitare problemi
+                `"${noteSafe}"`,
+                (ord.totale || 0).toFixed(2)
+            ].join(",");
+            csvContent += row + "\n";
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "report_ordini_" + new Date().toISOString().slice(0,10) + ".csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     function salvaMenu() {
@@ -405,15 +451,19 @@
             contorni: document.getElementById('menu-contorni').value,
             insalatone: document.getElementById('menu-insalatone').value,
             pizze: document.getElementById('menu-pizze').value,
-            pizze_esaurite: document.getElementById('pizze-soldout').checked
+            pizze_esaurite: document.getElementById('pizze-soldout').checked,
+            blocca_ordini: document.getElementById('blocca-ordini').checked // Salva Panic Mode
         });
         alert("Menu Pubblicato!");
     }
 
     function cancellaTutto() {
-        if(confirm("Sei sicuro?")) { db.ref('ordini').remove(); location.reload(); }
+        if(confirm("ATTENZIONE: Stai per cancellare TUTTI gli ordini della giornata.\nHai scaricato il report Excel?\n\nContinuare?")) {
+            db.ref('ordini').remove();
+            location.reload();
+        }
     }
 </script>
 </body>
 </html>
-   
+
