@@ -18,6 +18,7 @@
         
         input, textarea { width: 100%; padding: 12px; margin: 5px 0 15px 0; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
         button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1.1em; cursor: pointer; margin-top: 10px; }
+        .print-btn { background: #636e72; margin-top: 5px; font-size: 0.9em; padding: 10px; }
         .delete-btn { background: #d63031; margin-top: 30px; }
         .logout-btn { background: #636e72; font-size: 0.9em; padding: 10px; margin-bottom: 20px; }
         
@@ -28,13 +29,14 @@
         .tavolo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 2px solid #eecd64; padding-bottom: 5px; }
         .tavolo-name { font-weight: 800; color: #e1b12c; text-transform: uppercase; font-size: 1.2em; }
         .tavolo-count { background: #2d3436; color: white; padding: 5px 10px; border-radius: 20px; font-size: 0.9em; font-weight: bold; }
+        .order-note { background: #ffeaa7; color: #d35400; padding: 8px; border-radius: 6px; font-size: 0.9em; margin-top: 10px; font-style: italic; border-left: 3px solid #fdcb6e; }
 
-        /* Stile per le note nell'ordine */
-        .order-note {
-            background: #ffeaa7; color: #d35400; padding: 8px; 
-            border-radius: 6px; font-size: 0.9em; margin-top: 10px; font-style: italic;
-            border-left: 3px solid #fdcb6e;
+        /* Checkbox Pizze Esaurite */
+        .soldout-check-container {
+            background: #ffcccc; padding: 10px; border-radius: 8px; border: 2px solid #d63031;
+            display: flex; align-items: center; gap: 10px; color: #c0392b; font-weight: bold;
         }
+        .soldout-check-container input { width: 20px; height: 20px; margin: 0; }
 
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(65, 96, 88, 0.95); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         #login-box { background: white; padding: 40px; border-radius: 15px; width: 300px; text-align: center; }
@@ -59,12 +61,21 @@
     
     <div class="menu-section">
         <h2>Imposta Menu</h2>
+        <p style="font-size:0.8em; color:#666; text-align:center;">💡 TIP: Scrivi <strong>[X]</strong> davanti a un piatto per segnarlo ESAURITO (es. <em>[X] Lasagna</em>)</p>
+        
         <div class="menu-grid">
             <h3>🍝 Primi</h3> <textarea id="menu-primi" rows="2"></textarea>
             <h3>🍖 Secondi</h3> <textarea id="menu-secondi" rows="2"></textarea>
             <h3>🥗 Contorni</h3> <textarea id="menu-contorni" rows="2"></textarea>
-            <h3 style="color:#27ae60;">🥬 Insalatone</h3> <textarea id="menu-insalatone" rows="2" placeholder="Es. Insalata Greca..."></textarea>
-            <h3>🍕 Pizze (Info)</h3> <textarea id="menu-pizze" rows="2"></textarea>
+            <h3 style="color:#27ae60;">🥬 Insalatone</h3> <textarea id="menu-insalatone" rows="2"></textarea>
+            
+            <h3>🍕 Pizze (Info)</h3> 
+            <textarea id="menu-pizze" rows="2"></textarea>
+            
+            <div class="soldout-check-container">
+                <input type="checkbox" id="pizze-soldout">
+                <label for="pizze-soldout">🚫 Segna TUTTE le Pizze come ESAURITE</label>
+            </div>
         </div>
         <button onclick="salvaMenu()">PUBBLICA MENU</button>
     </div>
@@ -86,7 +97,8 @@
 <script>
     // ***********************************************************
     // 👇 INCOLLA LE TUE CHIAVI FIREBASE QUI SOTTO 👇
-    const firebaseConfig = {
+    // ***********************************************************
+   const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
         authDomain: "melastregatauni.firebaseapp.com",
         // Nota: questo URL è importante perché il tuo database è in Europa
@@ -132,6 +144,8 @@
                 document.getElementById('menu-contorni').value = m.contorni || "";
                 document.getElementById('menu-insalatone').value = m.insalatone || "";
                 document.getElementById('menu-pizze').value = m.pizze || "";
+                // Carica stato checkbox pizze
+                document.getElementById('pizze-soldout').checked = m.pizze_esaurite || false;
             }
         });
 
@@ -151,8 +165,12 @@
         let gruppiTavoli = {};
         let contaPersonePerTavolo = {}; 
 
-        Object.values(data).forEach(ordine => {
+        // Convertiamo l'oggetto ordini in array per poter passare l'oggetto completo al bottone stampa
+        Object.entries(data).forEach(([key, ordine]) => {
             if (!ordine.items && !ordine.piatti) return; 
+            
+            // Salviamo la chiave per riferimento (opzionale)
+            ordine.id = key;
 
             if (ordine.tipo === 'tavolo' && ordine.tavolo) {
                 const nomeTav = ordine.tavolo;
@@ -163,16 +181,15 @@
             let piattiHTML = "";
             if(ordine.items) {
                 piattiHTML = ordine.items.map(i => `<span>• <strong>${i.qty}x</strong> ${i.nome}</span>`).join("<br>");
-            } else if (ordine.piatti) {
-                piattiHTML = ordine.piatti.join(", "); 
             }
 
             const telefonoHTML = ordine.telefono ? `<div style="margin-top:5px; font-size:0.9em;">📞 <a href="tel:${ordine.telefono}" style="font-weight:bold; color:#54a0ff;">${ordine.telefono}</a></div>` : "";
             const totaleHTML = ordine.totale ? `<div style="margin-top:10px; font-size:1.1em; color:#27ae60; border-top:1px solid #eee; padding-top:5px;">💰 <strong>Totale: € ${parseFloat(ordine.totale).toFixed(2)}</strong></div>` : "";
             const copertiOrdine = (ordine.tipo === 'tavolo' && ordine.coperti) ? `<span style="font-size:0.8em; background:#eee; padding:2px 6px; border-radius:4px; margin-left:5px;">👤 +${ordine.coperti}</span>` : "";
-            
-            // --- MOSTRA NOTE SE PRESENTI ---
             const noteHTML = ordine.note ? `<div class="order-note">📝 Note: ${ordine.note}</div>` : "";
+
+            // Encode dell'ordine per passarlo alla funzione di stampa
+            const ordineString = encodeURIComponent(JSON.stringify(ordine));
 
             const htmlCard = `
                 <div class="card" style="border-left: 5px solid ${ordine.tipo === 'asporto' ? '#27ae60' : '#2980b9'} !important;">
@@ -185,6 +202,7 @@
                     <div style="margin-top:8px; color:#444;">${piattiHTML}</div>
                     ${noteHTML}
                     ${totaleHTML}
+                    <button class="print-btn" onclick="stampaOrdine('${ordineString}')">🖨️ STAMPA</button>
                 </div>`;
 
             if(ordine.tipo === 'asporto') {
@@ -209,13 +227,57 @@
         }
     }
 
+    function stampaOrdine(ordineString) {
+        const ordine = JSON.parse(decodeURIComponent(ordineString));
+        
+        let contenuto = `
+            <div style="font-family: monospace; width: 300px; padding: 10px; border: 1px solid black;">
+                <h2 style="text-align:center; margin:0;">Mela Stregata</h2>
+                <p style="text-align:center; margin:5px 0 15px 0;">${ordine.orario} - ${new Date().toLocaleDateString()}</p>
+                <div style="border-bottom: 1px dashed black;"></div>
+                <p><strong>Cliente:</strong> ${ordine.cliente}</p>
+                <p><strong>Tel:</strong> ${ordine.telefono}</p>
+                <p><strong>Tipo:</strong> ${ordine.tipo.toUpperCase()} ${ordine.tavolo ? '('+ordine.tavolo+')' : ''}</p>
+                ${ordine.coperti ? '<p><strong>Persone:</strong> '+ordine.coperti+'</p>' : ''}
+                <div style="border-bottom: 1px dashed black; margin: 10px 0;"></div>
+                <h3>ORDINE:</h3>
+                <ul style="padding-left: 20px;">
+        `;
+
+        ordine.items.forEach(item => {
+            contenuto += `<li>${item.qty}x ${item.nome}</li>`;
+        });
+
+        contenuto += `</ul>`;
+
+        if(ordine.note) {
+            contenuto += `<p><strong>NOTE:</strong> ${ordine.note}</p>`;
+        }
+
+        contenuto += `
+                <div style="border-bottom: 1px dashed black; margin: 10px 0;"></div>
+                <h3 style="text-align:right;">TOTALE: € ${parseFloat(ordine.totale).toFixed(2)}</h3>
+                <div style="text-align:center; margin-top:20px;">Grazie!</div>
+            </div>
+        `;
+
+        const finestraStampa = window.open('', '', 'height=600,width=400');
+        finestraStampa.document.write('<html><head><title>Stampa Ordine</title></head><body>');
+        finestraStampa.document.write(contenuto);
+        finestraStampa.document.write('</body></html>');
+        finestraStampa.document.close();
+        finestraStampa.focus();
+        setTimeout(() => { finestraStampa.print(); finestraStampa.close(); }, 500);
+    }
+
     function salvaMenu() {
         db.ref('menu').set({
             primi: document.getElementById('menu-primi').value,
             secondi: document.getElementById('menu-secondi').value,
             contorni: document.getElementById('menu-contorni').value,
             insalatone: document.getElementById('menu-insalatone').value,
-            pizze: document.getElementById('menu-pizze').value
+            pizze: document.getElementById('menu-pizze').value,
+            pizze_esaurite: document.getElementById('pizze-soldout').checked // Salva stato pizze
         });
         alert("Menu Pubblicato!");
     }
@@ -229,5 +291,4 @@
 </script>
 </body>
 </html>
-
 
