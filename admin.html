@@ -95,7 +95,7 @@
         /* EDIT ROWS */
         .edit-item-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
         .edit-item-qty { width: 60px; text-align: center; }
-        .edit-item-select { flex: 1; } /* Select prende tutto lo spazio */
+        .edit-item-select { flex: 1; }
         .btn-remove-item { background: #e74c3c; color: white; width: 30px; padding: 0; margin: 0; border-radius: 4px; }
     </style>
 </head>
@@ -208,6 +208,7 @@
     let isFirstLoad = true;
     let currentEditKey = null;
 
+    // --- NUOVO AUDIO (CAMPANELLA) ---
     let audioCtx = null;
     let audioEnabled = false;
     function abilitaAudio() {
@@ -223,11 +224,22 @@
     }
     function playSound() {
         if (!audioEnabled || !audioCtx) return;
-        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-        o.connect(g); g.connect(audioCtx.destination);
-        o.type = 'sine'; o.frequency.setValueAtTime(500, audioCtx.currentTime);
-        g.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        o.start(); o.stop(audioCtx.currentTime + 0.5);
+        const t = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        
+        // Effetto "Ding" elegante (La alto + decadimento morbido)
+        osc.type = 'sine'; 
+        osc.frequency.setValueAtTime(880, t); 
+        osc.frequency.exponentialRampToValueAtTime(800, t + 0.5); // Leggero pitch drop
+        
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.2, t + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5); // Lunga coda
+
+        osc.start(t);
+        osc.stop(t + 1.5);
     }
 
     db.ref(".info/connected").on("value", (snap) => {
@@ -339,7 +351,7 @@
 
     function toggleCompletato(key, currentStatus) { db.ref('ordini/' + key).update({ completed: !currentStatus }); }
 
-    // --- MODIFICA ORDINE CON TENDINA ---
+    // --- MODIFICA ORDINE ---
     function getMenuDropdownHTML(selectedName) {
         let allItems = [];
         ['menu-primi', 'menu-secondi', 'menu-contorni', 'menu-insalatone', 'menu-pizze'].forEach(id => {
@@ -350,22 +362,14 @@
             });
         });
         allItems.sort();
-
-        let html = '';
-        let found = false;
-        // Normalizza per confronto (rimuovi PIZZA: per la selezione)
+        let html = ''; let found = false;
         const cleanSelected = selectedName.replace("PIZZA: ", "").trim();
-
         allItems.forEach(dish => {
             const isSelected = dish === cleanSelected;
             if(isSelected) found = true;
             html += `<option value="${dish}" ${isSelected ? 'selected' : ''}>${dish}</option>`;
         });
-
-        // Se l'elemento originale non è nel menu corrente, aggiungilo in cima
-        if(!found && cleanSelected) {
-            html = `<option value="${cleanSelected}" selected>${cleanSelected} (Attuale)</option>` + html;
-        }
+        if(!found && cleanSelected) html = `<option value="${cleanSelected}" selected>${cleanSelected} (Attuale)</option>` + html;
         return `<select class="edit-item-select" onchange="ricalcolaTotaleModifica()">${html}</select>`;
     }
 
@@ -374,16 +378,10 @@
         const ordine = globalRawData[key];
         const container = document.getElementById('edit-items-container');
         container.innerHTML = "";
-
         if (ordine.items) {
             ordine.items.forEach((item, index) => {
                 const dropdown = getMenuDropdownHTML(item.nome);
-                container.innerHTML += `
-                    <div class="edit-item-row" id="edit-item-${index}">
-                        <input type="number" class="edit-item-qty" value="${item.qty}" oninput="ricalcolaTotaleModifica()">
-                        ${dropdown}
-                        <button class="btn-remove-item" onclick="{document.getElementById('edit-item-${index}').remove(); ricalcolaTotaleModifica();}">X</button>
-                    </div>`;
+                container.innerHTML += `<div class="edit-item-row" id="edit-item-${index}"><input type="number" class="edit-item-qty" value="${item.qty}" oninput="ricalcolaTotaleModifica()">${dropdown}<button class="btn-remove-item" onclick="{document.getElementById('edit-item-${index}').remove(); ricalcolaTotaleModifica();}">X</button></div>`;
             });
         }
         document.getElementById('edit-total-price').value = parseFloat(ordine.totale || 0).toFixed(2);
@@ -392,15 +390,9 @@
 
     function ricalcolaTotaleModifica() {
         let total = 0;
-        const rows = document.querySelectorAll('.edit-item-row');
-        rows.forEach(row => {
+        document.querySelectorAll('.edit-item-row').forEach(row => {
             const qty = parseInt(row.querySelector('.edit-item-qty').value) || 0;
-            const select = row.querySelector('.edit-item-select');
-            const name = select.value; // Valore selezionato
-            
-            // Cerca prezzo. Se è una pizza, getPriceForItem lo gestisce anche senza "PIZZA:"
-            // ma getPriceForItem cerca corrispondenza.
-            // Se "Margherita" è in menu-pizze, ritorna prezzo pizze.
+            const name = row.querySelector('.edit-item-select').value;
             const price = getPriceForItem(name); 
             total += (qty * price);
         });
@@ -411,44 +403,34 @@
         const rows = document.querySelectorAll('.edit-item-row');
         let newItems = [];
         const menuPizze = document.getElementById('menu-pizze').value;
-
         rows.forEach(row => {
             const qty = parseInt(row.querySelector('.edit-item-qty').value);
             let nome = row.querySelector('.edit-item-select').value;
-            
-            // Se il nome è presente nel menu pizze, aggiungi prefisso per coerenza visiva (opzionale ma carino)
-            if (menuPizze.includes(nome) && !nome.startsWith("PIZZA:")) {
-                nome = "PIZZA: " + nome;
-            }
-
+            if (menuPizze.includes(nome) && !nome.startsWith("PIZZA:")) nome = "PIZZA: " + nome;
             if (qty > 0 && nome.trim() !== "") newItems.push({ qty, nome });
         });
         const newTotal = parseFloat(document.getElementById('edit-total-price').value) || 0;
         db.ref('ordini/' + currentEditKey).update({ items: newItems, totale: newTotal }).then(() => { document.getElementById('edit-overlay').style.display = 'none'; });
     }
 
-    // --- LOGICA CONTO TAVOLO ---
-    let currentTableData = null;
+    // --- CONTO TAVOLO ---
     function getPriceForItem(name) {
-        const menuPrimi = document.getElementById('menu-primi').value;
-        const menuSecondi = document.getElementById('menu-secondi').value;
-        const menuContorni = document.getElementById('menu-contorni').value;
-        const menuInsalatone = document.getElementById('menu-insalatone').value;
-        const menuPizze = document.getElementById('menu-pizze').value;
-
-        let price = 0;
-        const cleanName = name.replace("PIZZA: ", "").trim();
-
-        if (name.startsWith("PIZZA:")) price = parseFloat(document.getElementById('price-pizze').value) || 0;
-        else if (menuPrimi.includes(cleanName)) price = parseFloat(document.getElementById('price-primi').value) || 0;
-        else if (menuSecondi.includes(cleanName)) price = parseFloat(document.getElementById('price-secondi').value) || 0;
-        else if (menuContorni.includes(cleanName)) price = parseFloat(document.getElementById('price-contorni').value) || 0;
-        else if (menuInsalatone.includes(cleanName)) price = parseFloat(document.getElementById('price-insalatone').value) || 0;
-        else if (menuPizze.includes(cleanName)) price = parseFloat(document.getElementById('price-pizze').value) || 0; // Check extra per pizze senza prefisso
-        
+        const mP = document.getElementById('menu-primi').value;
+        const mS = document.getElementById('menu-secondi').value;
+        const mC = document.getElementById('menu-contorni').value;
+        const mI = document.getElementById('menu-insalatone').value;
+        const mPiz = document.getElementById('menu-pizze').value;
+        let price = 0; const cN = name.replace("PIZZA: ", "").trim();
+        if (name.startsWith("PIZZA:")) price = parseFloat(document.getElementById('price-pizze').value)||0;
+        else if (mP.includes(cN)) price = parseFloat(document.getElementById('price-primi').value)||0;
+        else if (mS.includes(cN)) price = parseFloat(document.getElementById('price-secondi').value)||0;
+        else if (mC.includes(cN)) price = parseFloat(document.getElementById('price-contorni').value)||0;
+        else if (mI.includes(cN)) price = parseFloat(document.getElementById('price-insalatone').value)||0;
+        else if (mPiz.includes(cN)) price = parseFloat(document.getElementById('price-pizze').value)||0;
         return price;
     }
 
+    let currentTableData = null;
     function mostraContoTavolo(tavolo) {
         const ordiniTavolo = globalOrdersByTable[tavolo]; if (!ordiniTavolo) return;
         let riepilogoItems = {}; let totaleRealeTavolo = 0;
@@ -468,14 +450,10 @@
             const priceStr = data.price > 0 ? `(€ ${data.price.toFixed(2)} cad.)` : "";
             container.innerHTML += `<div class="bill-item"><span><strong>${data.qty}x</strong> ${nome.replace("PIZZA: ","")} ${priceStr}</span><span>€ ${lineTotal.toFixed(2)}</span></div>`;
         }
-        
-        // Calcolo "Alla Romana"
         let htmlDiviso = `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #eee; font-size:0.9em; color:#666; display:flex; align-items:center; gap:10px;"><span>➗ Diviso</span><input type="number" id="split-num" value="1" min="1" style="width:50px; padding:5px; text-align:center;" oninput="calcolaDiviso(${totaleRealeTavolo})">persone = <strong id="split-res" style="color:#2c3e50;">€ ${totaleRealeTavolo.toFixed(2)}</strong> a testa</div>`;
-
         document.getElementById('bill-title').innerText = "Conto Tavolo: " + tavolo;
         document.getElementById('bill-total-value').innerText = "€ " + totaleRealeTavolo.toFixed(2);
         container.innerHTML += htmlDiviso;
-
         currentTableData = { tavolo, items: riepilogoItems, totale: totaleRealeTavolo };
         document.getElementById('bill-overlay').style.display = 'flex';
     }
