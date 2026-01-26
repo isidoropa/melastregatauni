@@ -365,7 +365,7 @@
         const now = new Date();
         const curMins = now.getHours() * 60 + now.getMinutes();
         const start = 9 * 60;        // 09:00
-        const end = 12 * 60 + 15;    // 12:15
+        const end = 23 * 60 + 15;    // 12:15 12 * 60 + 15
 
         if (curMins < start || curMins > end) {
             alert("⚠️ ATTENZIONE: Le ordinazioni sono aperte solo dalle 09:00 alle 12:15.");
@@ -432,3 +432,4 @@
 </script>
 </body>
 </html>
+
