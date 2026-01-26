@@ -14,71 +14,31 @@
             --primary: #2c3e50;
             --accent: #27ae60;
             --danger: #e74c3c;
-            --brand-green: #416058; /* IL TUO VERDE */
+            --brand-green: #416058;
             --bg: #416058;
             --surface: #ffffff;
             --border: #e2e6ea;
         }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: var(--brand-green); /* Sfondo verde */
-            margin: 0;
-            padding: 20px;
-            color: #ffffff; /* Testo principale bianco per contrasto */
-        }
+        body { font-family: 'Poppins', sans-serif; background: var(--brand-green); margin: 0; padding: 20px; color: #ffffff; }
+        .container { max-width: 800px; margin: 0 auto; }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        /* Header e Titoli (Bianchi sullo sfondo verde) */
         h1, h2 { color: #ffffff; text-align: center; font-weight: 700; }
         h1 { margin-bottom: 20px; }
         h2 { font-size: 1.2em; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px; margin-top: 30px; }
 
-        /* Box Bianchi (Cards) - Testo interno scuro */
         .admin-panel, .menu-section, .card, #login-box, #history-box {
-            background: var(--surface);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            border: none;
-            color: #2d3436; /* Testo scuro dentro i box bianchi */
+            background: var(--surface); padding: 25px; border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; border: none; color: #2d3436;
         }
 
-        /* Titoli dentro i box bianchi (Tornano scuri) */
-        .admin-panel h2, #login-box h2, #history-box h3 {
-            color: var(--primary);
-            border-bottom: 2px solid var(--border);
-        }
+        .admin-panel h2, #login-box h2, #history-box h3 { color: var(--primary); border-bottom: 2px solid var(--border); }
         .menu-section h3 { color: var(--primary); }
 
-        /* Input Styles */
-        input, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #dfe6e9;
-            border-radius: 8px;
-            font-family: inherit;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-            background: #f9f9f9;
-        }
-        .price-input {
-            width: 80px !important; display: inline-block; 
-            margin-left: 10px !important; text-align: center;
-            border-color: var(--accent) !important; color: var(--accent); font-weight: bold; background: #fff;
-        }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #dfe6e9; border-radius: 8px; font-family: inherit; margin-bottom: 10px; box-sizing: border-box; background: #f9f9f9; }
+        .price-input { width: 80px !important; display: inline-block; margin-left: 10px !important; text-align: center; border-color: var(--accent) !important; color: var(--accent); font-weight: bold; background: #fff; }
 
-        /* Bottoni */
-        button {
-            width: 100%; padding: 14px; border: none; border-radius: 8px;
-            font-weight: 600; cursor: pointer; transition: 0.2s;
-            font-size: 1em; margin-top: 10px;
-        }
+        button { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 1em; margin-top: 10px; }
         button:hover { filter: brightness(95%); }
 
         .btn-primary { background: var(--primary); color: white; }
@@ -88,59 +48,32 @@
         
         .global-actions { display: flex; gap: 10px; margin-top: 20px; }
         
-        /* Dashboard Stats */
-        #revenue-box {
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-            color: white; padding: 20px; border-radius: 12px;
-            text-align: center; font-size: 1.3em;
-            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
-            margin-bottom: 20px; border: none;
-        }
+        #revenue-box { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); color: white; padding: 20px; border-radius: 12px; text-align: center; font-size: 1.3em; box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3); margin-bottom: 20px; border: none; }
 
-        /* Card Ordini */
         .card { position: relative; border-left: 5px solid #bdc3c7; transition: all 0.5s; }
         .card-fresh { border-left-color: #f1c40f; background: #fffdf0; animation: pulse 2s infinite; }
         .card-old { opacity: 0.6; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(241, 196, 15, 0); } 100% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0); } }
 
-        .badge-new { 
-            position: absolute; top: 10px; right: 40px; 
-            background: #e74c3c; color: white; padding: 3px 8px; 
-            border-radius: 4px; font-size: 0.7em; font-weight: bold; 
-        }
+        .badge-new { position: absolute; top: 10px; right: 40px; background: #e74c3c; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.7em; font-weight: bold; }
+        .btn-delete-single { position: absolute; top: 10px; right: 10px; background: #fee; color: #c0392b; width: 24px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
-        .btn-delete-single {
-            position: absolute; top: 10px; right: 10px;
-            background: #fee; color: #c0392b;
-            width: 24px; height: 24px; border-radius: 4px;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: bold;
-        }
-
-        /* Tavoli */
         .tavolo-group { border: 2px dashed #dfe6e9; background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 20px; color: #2d3436; }
         .tavolo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
         .tavolo-name { font-weight: 800; color: var(--primary); font-size: 1.1em; }
         .tavolo-info-btn { background: var(--primary); color: white; font-size: 0.8em; width: auto; padding: 5px 10px; margin: 0; }
 
-        /* Checkbox Containers */
-        .control-box {
-            background: #f1f2f6; padding: 12px; border-radius: 8px; margin-top: 10px;
-            display: flex; align-items: center; gap: 10px; font-weight: 600; color: #555;
-        }
+        .control-box { background: #f1f2f6; padding: 12px; border-radius: 8px; margin-top: 10px; display: flex; align-items: center; gap: 10px; font-weight: 600; color: #555; }
         .control-box input { width: 20px; margin: 0; }
         .panic-mode { background: #ffebeb; color: #c0392b; border: 1px solid #fab1a0; }
 
-        /* Connection Monitor */
         #connection-status { position: fixed; top: 15px; right: 15px; z-index: 999; background: white; padding: 6px 15px; border-radius: 50px; font-size: 0.8em; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 8px; color: #2d3436; }
         .led { width: 8px; height: 8px; border-radius: 50%; }
         .led-on { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
         .led-off { background: #e74c3c; }
 
-        /* Overlays */
         #login-overlay, #history-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(65, 96, 88, 0.95); z-index: 10000; display: flex; justify-content: center; align-items: center; }
         #login-box, #history-box { background: white; padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; position: relative; color: #2d3436; }
-        
         .timeline-item { text-align: left; padding-left: 15px; border-left: 2px solid #dfe6e9; margin-bottom: 15px; padding-bottom: 5px; }
         .timeline-time { color: var(--accent); font-weight: bold; font-size: 0.9em; }
     </style>
@@ -169,7 +102,6 @@
 </div>
 
 <div class="container" id="admin-content" style="display:none;">
-    
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
         <h1 style="margin:0;">Dashboard</h1>
         <button onclick="logout()" style="width:auto; background:rgba(255,255,255,0.2); color:white; padding:8px 15px; font-size:0.8em;">Esci</button>
@@ -187,54 +119,29 @@
         <div style="background:#e8f5e9; padding:10px; border-radius:8px; margin-bottom:15px; text-align:center; border:1px solid #c3e6cb;">
             Prezzo Combo: <input type="number" id="price-combo" class="price-input" value="7.00"> €
         </div>
-
-        <h3>🍝 Primi <input type="number" id="price-primi" class="price-input" value="5">€</h3> 
-        <textarea id="menu-primi" rows="2"></textarea>
-        
-        <h3>🍖 Secondi <input type="number" id="price-secondi" class="price-input" value="5">€</h3> 
-        <textarea id="menu-secondi" rows="2"></textarea>
-        
-        <h3>🥗 Contorni <input type="number" id="price-contorni" class="price-input" value="3">€</h3> 
-        <textarea id="menu-contorni" rows="2"></textarea>
-        
-        <h3 style="color:var(--accent);">🥬 Insalatone <input type="number" id="price-insalatone" class="price-input" value="6">€</h3> 
-        <textarea id="menu-insalatone" rows="2"></textarea>
-        
-        <h3>🍕 Pizze <input type="number" id="price-pizze" class="price-input" value="7">€</h3> 
-        <textarea id="menu-pizze" rows="2"></textarea>
-        
-        <div class="control-box">
-            <input type="checkbox" id="pizze-soldout"> <label for="pizze-soldout">🚫 Pizze ESAURITE</label>
-        </div>
-        <div class="control-box panic-mode">
-            <input type="checkbox" id="blocca-ordini"> <label for="blocca-ordini">⛔️ BLOCCA ORDINI (Panic)</label>
-        </div>
-
+        <h3>🍝 Primi <input type="number" id="price-primi" class="price-input" value="5">€</h3> <textarea id="menu-primi" rows="2"></textarea>
+        <h3>🍖 Secondi <input type="number" id="price-secondi" class="price-input" value="5">€</h3> <textarea id="menu-secondi" rows="2"></textarea>
+        <h3>🥗 Contorni <input type="number" id="price-contorni" class="price-input" value="3">€</h3> <textarea id="menu-contorni" rows="2"></textarea>
+        <h3 style="color:var(--accent);">🥬 Insalatone <input type="number" id="price-insalatone" class="price-input" value="6">€</h3> <textarea id="menu-insalatone" rows="2"></textarea>
+        <h3>🍕 Pizze <input type="number" id="price-pizze" class="price-input" value="7">€</h3> <textarea id="menu-pizze" rows="2"></textarea>
+        <div class="control-box"><input type="checkbox" id="pizze-soldout"> <label for="pizze-soldout">🚫 Pizze ESAURITE</label></div>
+        <div class="control-box panic-mode"><input type="checkbox" id="blocca-ordini"> <label for="blocca-ordini">⛔️ BLOCCA ORDINI (Panic)</label></div>
         <button class="btn-success" onclick="salvaMenu()">AGGIORNA MENU</button>
     </div>
 
     <h2>Ordini in Arrivo</h2>
     <div id="status-db" style="text-align:center; font-size:0.8em; color:rgba(255,255,255,0.7); margin-bottom:15px;">In attesa...</div>
-
-    <h3>🥡 Asporto</h3>
-    <div id="lista-asporto"></div>
-
-    <h3>🍽️ Tavoli</h3>
-    <div id="lista-tavoli"></div>
+    <h3>🥡 Asporto</h3> <div id="lista-asporto"></div>
+    <h3>🍽️ Tavoli</h3> <div id="lista-tavoli"></div>
 
     <div class="global-actions">
         <button class="btn-success" onclick="scaricaExcel()">📥 EXCEL</button>
         <button class="btn-danger" onclick="cancellaTutto()">🗑️ RESET</button>
     </div>
-
 </div>
 
-<audio id="notification-sound" src="data:audio/mp3;base64,SUQzBAAAAAABAFRYWFQAAAASAAADbWFqb3JfYnJhbmQAbXA0MgBUWFhUAAAAEQAAA21pbm9yX3ZlcnNpb24AMABUWFhUAAAAHAAAA2NvbXBhdGlibGVfYnJhbmRzAGlzb21tcDQyAFRTU0UAAAAOAAADTGF2ZjU3LjU2LjEwMAAAAAAAAAAAAAAA//uQZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABCAAVY2ZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZm//uQZAAABAAAAAAAAAAAAAgAAAAAAAAABAAAAA5LAAAAAAAAAAAAAAABJbmZvAAAADwAAAAQAAAEIABVjZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmYAAAAATGF2YzU3LjY0AAAAAAAAAAAAAAAAJAAAAAAAAAAAExBDwFxoAAAAAAABCAAA//uQZAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAAAB5XINGkAAADUAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAA//uQZAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAAAB5XINGkAAADUAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAA//uQZAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAAAB5XINGkAAADUAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAA//uQZAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAAAB5XINGkAAADUAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAA//uQZAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAAAB5XINGkAAADUAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAA//uQZAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAAAB5XINGkAAADUAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAA//uQZAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAAAB5XINGkAAADUAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAA//uQZAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAAAB5XINGkAAADUAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAA//uQZAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAAAB5XINGkAAADUAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAA//uQZAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAAAB5XINGkAAADUAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAA//uQZAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAAAB5XINGkAAADUAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAA//uQZAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAAAB5XINGkAAADUAAAAAAA0gAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAgAAAAAAAAABAAAA"></audio>
-
 <script>
-    // ***********************************************************
-    // 👇 INCOLLA LE TUE CHIAVI FIREBASE QUI SOTTO 👇
-    // ***********************************************************
+    // CONFIGURA FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
         authDomain: "melastregatauni.firebaseapp.com",
@@ -245,16 +152,53 @@
         messagingSenderId: "438544443213",
         appId: "1:438544443213:web:f30f121f0642b8e8a9b904"
     };
-    // ***********************************************************
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const auth = firebase.auth();
     let globalOrdersByTable = {};
     let globalRawData = {};
-    let audioEnabled = false;
     let lastOrderCount = 0;
     let isFirstLoad = true;
+
+    // --- NUOVO SISTEMA AUDIO (Web Audio API) ---
+    // Questo crea un suono sintetizzato direttamente dal browser. Non fallisce mai.
+    let audioCtx = null;
+    let audioEnabled = false;
+
+    function abilitaAudio() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            audioCtx.resume().then(() => {
+                audioEnabled = true;
+                playSound(); // Suona subito per test
+                document.getElementById('btn-audio').style.display = 'none';
+                alert("🔊 Audio Attivato correttamente!");
+            });
+        } catch(e) {
+            alert("Errore Audio: " + e.message);
+        }
+    }
+
+    function playSound() {
+        if (!audioEnabled || !audioCtx) return;
+        
+        // Crea un oscillatore (generatore di suoni)
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.type = 'sine'; // Tipo di onda (sine = beep dolce)
+        oscillator.frequency.setValueAtTime(500, audioCtx.currentTime); // Frequenza (Hz)
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); // Volume basso
+
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.5); // Dura 0.5 secondi
+    }
+    // -------------------------------------------
 
     db.ref(".info/connected").on("value", (snap) => {
         if (snap.val() === true) { document.getElementById('status-led').className = "led led-on"; document.getElementById('status-text').innerText = "Online"; document.getElementById('status-text').style.color = "#2ecc71"; } 
@@ -266,8 +210,6 @@
 
     function login() { const email = document.getElementById('email').value; const pass = document.getElementById('password').value; auth.signInWithEmailAndPassword(email, pass).catch((error) => { document.getElementById('login-error').style.display = 'block'; }); }
     function logout() { auth.signOut().then(() => location.reload()); }
-    function abilitaAudio() { const a = document.getElementById('notification-sound'); a.play().then(() => { a.pause(); a.currentTime = 0; audioEnabled = true; document.getElementById('btn-audio').style.display = 'none'; alert("Audio Attivato!"); }).catch(e => alert("Errore audio: " + e)); }
-    function playSound() { if(audioEnabled) { const a = document.getElementById('notification-sound'); a.currentTime = 0; a.play().catch(e=>{}); } }
 
     function caricaDati() {
         db.ref('menu').once('value', (s) => {
@@ -280,7 +222,6 @@
                 document.getElementById('menu-pizze').value = m.pizze || "";
                 document.getElementById('pizze-soldout').checked = m.pizze_esaurite || false;
                 document.getElementById('blocca-ordini').checked = m.blocca_ordini || false;
-
                 document.getElementById('price-primi').value = m.prezzo_primi || 5;
                 document.getElementById('price-secondi').value = m.prezzo_secondi || 5;
                 document.getElementById('price-contorni').value = m.prezzo_contorni || 3;
@@ -401,6 +342,5 @@
 </script>
 </body>
 </html>
-
 
 
