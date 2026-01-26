@@ -9,21 +9,15 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        /* Stile per la lista pizze confermate */
-        .pizza-item-confirmed {
-            display: flex; justify-content: space-between; align-items: center;
-            background: #fff3cd; padding: 8px 10px; border-radius: 6px;
-            margin-bottom: 5px; border: 1px solid #ffeeba;
-        }
-        .btn-remove-pizza {
-            background: #ff7675; color: white; border: none; 
-            padding: 2px 8px; border-radius: 4px; cursor: pointer; margin-left: 10px;
-        }
-        .btn-confirm-pizza {
-            background: #27ae60; color: white; border: none;
-            padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer;
-            width: auto; margin-left: 5px;
-        }
+        .pizza-item-confirmed { display: flex; justify-content: space-between; align-items: center; background: #fff3cd; padding: 8px 10px; border-radius: 6px; margin-bottom: 5px; border: 1px solid #ffeeba; }
+        .btn-remove-pizza { background: #ff7675; color: white; border: none; padding: 2px 8px; border-radius: 4px; cursor: pointer; margin-left: 10px; }
+        .btn-confirm-pizza { background: #27ae60; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: auto; margin-left: 5px; }
+        
+        /* Stile SOLD OUT */
+        .sold-out-row { opacity: 0.6; }
+        .sold-out-row span { text-decoration: line-through; color: #d63031; font-weight: bold; }
+        .sold-out-row input { background: #eee; border-color: #ddd; cursor: not-allowed; }
+        .sold-out-msg { color: #d63031; font-weight: bold; padding: 10px; border: 2px dashed #d63031; border-radius: 8px; text-align: center; background: #fff5f5; }
     </style>
 </head>
 <body style="padding-bottom: 80px;">
@@ -69,12 +63,17 @@
                 <h3 style="color: #d39e00;">🍕 Pizze (€ 7,00)</h3>
                 <div id="lista-pizze-display" style="margin-bottom:15px; font-style:italic;"></div>
                 
-                <p style="font-size:0.9em; margin-bottom:5px;">Scrivi la pizza e clicca OK per aggiungerla:</p>
-                
-                <div style="display:flex; align-items:center; margin-bottom:10px;">
-                    <input type="text" id="temp-pizza-name" placeholder="Es. Margherita" style="margin:0; flex-grow:1;">
-                    <input type="number" id="temp-pizza-qty" value="1" min="1" style="margin:0 5px; width:50px; text-align:center;">
-                    <button class="btn-confirm-pizza" onclick="confermaPizza()">OK</button>
+                <div id="pizza-active-area">
+                    <p style="font-size:0.9em; margin-bottom:5px;">Scrivi la pizza e clicca OK per aggiungerla:</p>
+                    <div style="display:flex; align-items:center; margin-bottom:10px;">
+                        <input type="text" id="temp-pizza-name" placeholder="Es. Margherita" style="margin:0; flex-grow:1;">
+                        <input type="number" id="temp-pizza-qty" value="1" min="1" style="margin:0 5px; width:50px; text-align:center;">
+                        <button class="btn-confirm-pizza" onclick="confermaPizza()">OK</button>
+                    </div>
+                </div>
+
+                <div id="pizza-soldout-msg" class="hidden sold-out-msg">
+                    🚫 PIZZE ESAURITE PER OGGI
                 </div>
 
                 <div id="pizze-aggiunte-list"></div>
@@ -131,7 +130,7 @@
     // ***********************************************************
     // 👇 INCOLLA LE TUE CHIAVI FIREBASE QUI SOTTO 👇
     // ***********************************************************
-    const firebaseConfig = {
+     const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
         authDomain: "melastregatauni.firebaseapp.com",
         // Nota: questo URL è importante perché il tuo database è in Europa
@@ -147,7 +146,15 @@
     const db = firebase.database();
     
     let totaleOrdineCalcolato = 0;
-    let carrelloPizze = []; // Array per le pizze confermate
+    let carrelloPizze = [];
+
+    // --- CARICA DATI UTENTE SALVATI (FEATURE #3) ---
+    window.onload = function() {
+        const savedNome = localStorage.getItem('nomeUtente');
+        const savedTel = localStorage.getItem('telUtente');
+        if(savedNome) document.getElementById('nome').value = savedNome;
+        if(savedTel) document.getElementById('telefono').value = savedTel;
+    };
 
     db.ref('menu').on('value', (snapshot) => {
         document.getElementById('menu-loading').style.display = 'none';
@@ -158,7 +165,25 @@
         renderSection('sec-secondi', m.secondi, 'secondo');
         renderSection('sec-contorni', m.contorni, 'contorno');
         renderSection('sec-insalatone', m.insalatone, 'insalatona');
+        
         document.getElementById('lista-pizze-display').innerHTML = m.pizze ? m.pizze.replace(/\n/g, "<br>") : "Chiedi al personale.";
+
+        // --- GESTIONE PIZZE ESAURITE (FEATURE #4) ---
+        const pizzaActive = document.getElementById('pizza-active-area');
+        const pizzaMsg = document.getElementById('pizza-soldout-msg');
+        
+        if (m.pizze_esaurite) {
+            pizzaActive.classList.add('hidden');
+            pizzaMsg.classList.remove('hidden');
+            // Se c'erano pizze nel carrello, puliscile
+            carrelloPizze = [];
+            renderPizzeAggiunte();
+            calcolaTotale();
+        } else {
+            pizzaActive.classList.remove('hidden');
+            pizzaMsg.classList.add('hidden');
+        }
+
     }, (error) => {
         document.getElementById('menu-loading').innerHTML = "<strong style='color:red'>Errore caricamento.</strong>";
     });
@@ -168,17 +193,29 @@
         container.innerHTML = "";
         if(!textData) { container.innerHTML = "<em>Niente oggi.</em>"; return; }
         const righe = textData.split('\n');
+        
         righe.forEach(piatto => {
             if(piatto.trim() !== "") {
                 const div = document.createElement('div');
                 div.className = 'piatto-row';
-                div.innerHTML = `<span>${piatto}</span><input type="number" class="qty-piatto" data-nome="${piatto}" data-tipo="${tipoPiatto}" value="0" min="0" oninput="calcolaTotale()" onchange="calcolaTotale()">`;
+                
+                // --- CONTROLLO SOLD OUT [X] (FEATURE #4) ---
+                const isSoldOut = piatto.trim().startsWith('[X]');
+                let cleanName = piatto;
+                let inputHtml = `<input type="number" class="qty-piatto" data-nome="${piatto}" data-tipo="${tipoPiatto}" value="0" min="0" oninput="calcolaTotale()" onchange="calcolaTotale()">`;
+
+                if (isSoldOut) {
+                    div.classList.add('sold-out-row');
+                    cleanName = piatto.replace('[X]', '').trim() + " (ESAURITO)";
+                    inputHtml = `<input type="number" disabled value="0">`; // Input disattivato
+                }
+
+                div.innerHTML = `<span>${cleanName}</span>${inputHtml}`;
                 container.appendChild(div);
             }
         });
     }
 
-    // --- NUOVA LOGICA PIZZE ---
     function confermaPizza() {
         const nameInput = document.getElementById('temp-pizza-name');
         const qtyInput = document.getElementById('temp-pizza-qty');
@@ -188,14 +225,9 @@
         if(nome === "") { alert("Scrivi il nome della pizza!"); return; }
         if(qty < 1) { alert("Quantità non valida!"); return; }
 
-        // Aggiungi all'array
         carrelloPizze.push({ nome: "PIZZA: " + nome, qty: qty, tipo: 'pizza' });
-        
-        // Pulisci input
         nameInput.value = "";
         qtyInput.value = 1;
-
-        // Aggiorna vista e totale
         renderPizzeAggiunte();
         calcolaTotale();
     }
@@ -228,24 +260,21 @@
     function calcolaTotale() {
         let nPrimi = 0, nSecondi = 0, nContorni = 0, nInsalatone = 0, nPizze = 0;
         
-        // Conta piatti menu
         document.querySelectorAll('.qty-piatto').forEach(input => {
-            const val = parseInt(input.value) || 0;
-            if (val > 0) {
-                const tipo = input.dataset.tipo;
-                if(tipo === 'primo') nPrimi += val;
-                if(tipo === 'secondo') nSecondi += val;
-                if(tipo === 'contorno') nContorni += val;
-                if(tipo === 'insalatona') nInsalatone += val;
+            if (!input.disabled) { // Conta solo se non è sold out
+                const val = parseInt(input.value) || 0;
+                if (val > 0) {
+                    const tipo = input.dataset.tipo;
+                    if(tipo === 'primo') nPrimi += val;
+                    if(tipo === 'secondo') nSecondi += val;
+                    if(tipo === 'contorno') nContorni += val;
+                    if(tipo === 'insalatona') nInsalatone += val;
+                }
             }
         });
 
-        // Conta pizze dall'array confermato (NON dagli input)
-        carrelloPizze.forEach(item => {
-            nPizze += item.qty;
-        });
+        carrelloPizze.forEach(item => { nPizze += item.qty; });
 
-        // Logica Offerta
         let nMenuCompleti = Math.min(nPrimi, nSecondi, nContorni);
         let restoP = nPrimi - nMenuCompleti;
         let restoS = nSecondi - nMenuCompleti;
@@ -268,7 +297,7 @@
         const tavolo = document.getElementById('nome-tavolo').value;
         const numPersone = document.getElementById('num-persone').value;
         const orarioScelto = document.getElementById('orario').value;
-        const note = document.getElementById('note-ordine').value; // NUOVO
+        const note = document.getElementById('note-ordine').value;
 
         if(!nome) { alert("Inserisci il tuo nome!"); return; }
         if(!telefono) { alert("Inserisci il numero di telefono!"); return; }
@@ -284,19 +313,18 @@
             coperti = parseInt(numPersone);
         }
 
-        // Costruisci carrello piatti normali
         let carrello = [];
         document.querySelectorAll('.qty-piatto').forEach(input => {
             const q = parseInt(input.value);
             if(q > 0) carrello.push({ nome: input.dataset.nome, qty: q });
         });
-
-        // Aggiungi pizze confermate
-        carrelloPizze.forEach(item => {
-            carrello.push(item);
-        });
+        carrelloPizze.forEach(item => { carrello.push(item); });
 
         if(carrello.length === 0) { alert("Il carrello è vuoto!"); return; }
+
+        // --- SALVA DATI UTENTE (FEATURE #3) ---
+        localStorage.setItem('nomeUtente', nome);
+        localStorage.setItem('telUtente', telefono);
 
         calcolaTotale();
 
@@ -308,7 +336,7 @@
             tavolo: tavoloFinale,
             coperti: coperti,
             orario: orarioScelto,
-            note: note, // INVIAMO LE NOTE
+            note: note,
             totale: totaleOrdineCalcolato,
             timestamp: Date.now()
         };
