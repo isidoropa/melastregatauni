@@ -29,6 +29,13 @@
         .tavolo-name { font-weight: 800; color: #e1b12c; text-transform: uppercase; font-size: 1.2em; }
         .tavolo-count { background: #2d3436; color: white; padding: 5px 10px; border-radius: 20px; font-size: 0.9em; font-weight: bold; }
 
+        /* Stile per le note nell'ordine */
+        .order-note {
+            background: #ffeaa7; color: #d35400; padding: 8px; 
+            border-radius: 6px; font-size: 0.9em; margin-top: 10px; font-style: italic;
+            border-left: 3px solid #fdcb6e;
+        }
+
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(65, 96, 88, 0.95); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         #login-box { background: white; padding: 40px; border-radius: 15px; width: 300px; text-align: center; }
         .error-msg { color: red; font-size: 0.9em; margin-top: 10px; display: none; }
@@ -56,8 +63,7 @@
             <h3>🍝 Primi</h3> <textarea id="menu-primi" rows="2"></textarea>
             <h3>🍖 Secondi</h3> <textarea id="menu-secondi" rows="2"></textarea>
             <h3>🥗 Contorni</h3> <textarea id="menu-contorni" rows="2"></textarea>
-            <h3 style="color:#27ae60;">🥬 Insalatone</h3> <textarea id="menu-insalatone" rows="2" placeholder="Es. Insalata Greca, Insalata Pollo..."></textarea>
-            
+            <h3 style="color:#27ae60;">🥬 Insalatone</h3> <textarea id="menu-insalatone" rows="2" placeholder="Es. Insalata Greca..."></textarea>
             <h3>🍕 Pizze (Info)</h3> <textarea id="menu-pizze" rows="2"></textarea>
         </div>
         <button onclick="salvaMenu()">PUBBLICA MENU</button>
@@ -80,7 +86,6 @@
 <script>
     // ***********************************************************
     // 👇 INCOLLA LE TUE CHIAVI FIREBASE QUI SOTTO 👇
-    // ***********************************************************
     const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
         authDomain: "melastregatauni.firebaseapp.com",
@@ -125,7 +130,7 @@
                 document.getElementById('menu-primi').value = m.primi || "";
                 document.getElementById('menu-secondi').value = m.secondi || "";
                 document.getElementById('menu-contorni').value = m.contorni || "";
-                document.getElementById('menu-insalatone').value = m.insalatone || ""; // Carica Insalatone
+                document.getElementById('menu-insalatone').value = m.insalatone || "";
                 document.getElementById('menu-pizze').value = m.pizze || "";
             }
         });
@@ -164,8 +169,10 @@
 
             const telefonoHTML = ordine.telefono ? `<div style="margin-top:5px; font-size:0.9em;">📞 <a href="tel:${ordine.telefono}" style="font-weight:bold; color:#54a0ff;">${ordine.telefono}</a></div>` : "";
             const totaleHTML = ordine.totale ? `<div style="margin-top:10px; font-size:1.1em; color:#27ae60; border-top:1px solid #eee; padding-top:5px;">💰 <strong>Totale: € ${parseFloat(ordine.totale).toFixed(2)}</strong></div>` : "";
-            
             const copertiOrdine = (ordine.tipo === 'tavolo' && ordine.coperti) ? `<span style="font-size:0.8em; background:#eee; padding:2px 6px; border-radius:4px; margin-left:5px;">👤 +${ordine.coperti}</span>` : "";
+            
+            // --- MOSTRA NOTE SE PRESENTI ---
+            const noteHTML = ordine.note ? `<div class="order-note">📝 Note: ${ordine.note}</div>` : "";
 
             const htmlCard = `
                 <div class="card" style="border-left: 5px solid ${ordine.tipo === 'asporto' ? '#27ae60' : '#2980b9'} !important;">
@@ -176,6 +183,7 @@
                     </div>
                     ${telefonoHTML}
                     <div style="margin-top:8px; color:#444;">${piattiHTML}</div>
+                    ${noteHTML}
                     ${totaleHTML}
                 </div>`;
 
@@ -206,7 +214,7 @@
             primi: document.getElementById('menu-primi').value,
             secondi: document.getElementById('menu-secondi').value,
             contorni: document.getElementById('menu-contorni').value,
-            insalatone: document.getElementById('menu-insalatone').value, // Salva Insalatone
+            insalatone: document.getElementById('menu-insalatone').value,
             pizze: document.getElementById('menu-pizze').value
         });
         alert("Menu Pubblicato!");
@@ -221,4 +229,5 @@
 </script>
 </body>
 </html>
+
 
