@@ -453,7 +453,16 @@
         });
     }
     function rimuoviPizza(index) { carrelloPizze.splice(index, 1); renderPizzeAggiunte(); calcolaTotale(); }
-    function toggleTavolo() { document.getElementById('div-tavolo').style.display = (document.getElementById('tipo-ordine').value === 'tavolo') ? 'block' : 'none'; }
+    function toggleTavolo() {
+        const val = document.getElementById('tipo-ordine').value;
+        const div = document.getElementById('div-tavolo');
+        
+        if (val === 'tavolo') {
+            div.classList.remove('hidden'); // Rimuove il blocco "invisibile"
+        } else {
+            div.classList.add('hidden');    // Rimette il blocco "invisibile"
+        }
+    }
 
     function calcolaTotale() {
         let nPrimi = 0, nSecondi = 0, nContorni = 0, nInsalatone = 0, nPizze = 0;
@@ -540,3 +549,4 @@
 </script>
 </body>
 </html>
+
