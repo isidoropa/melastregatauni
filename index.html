@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -10,10 +9,11 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
-<body style="padding-bottom: 80px;"> <img src="banner.jpg" alt="Mela Stregata" class="hero-image" onerror="this.style.display='none'">
+<body style="padding-bottom: 80px;">
+
+    <img src="banner.jpg" alt="Mela Stregata" class="hero-image" onerror="this.style.display='none'">
 
     <div class="container">
-        
         <div id="avviso-orari" style="background:#fff3cd; color:#856404; padding:15px; font-size:0.9em; border-radius:5px; margin-bottom:15px; text-align:center; line-height: 1.6;">
             🕒 <strong>Ordini:</strong> 09:00 - 12:15 | 🍽️ <strong>Ritiro:</strong> 12:00 - 14:15<br>
             📞 Info: <a href="tel:+391234567890" style="color:#856404; font-weight:bold;">+39 123 456 7890</a>
@@ -26,7 +26,7 @@
                 <li>Solo Contorno: <strong>€ 3,00</strong></li>
                 <li>Menu Pizza: <strong>€ 7,00</strong></li>
                 <li style="color:#27ae60; background:#e8f5e9; padding:2px 5px; border-radius:4px;">
-                    ✨ <strong>OFFERTA COMPLETA:</strong> 1 Primo + 1 Secondo + 1 Contorno = <strong>€ 7,00</strong>
+                    ✨ <strong>OFFERTA COMPLETA:</strong> 1P + 1S + 1C = <strong>€ 7,00</strong>
                 </li>
             </ul>
         </div>
@@ -35,22 +35,17 @@
 
         <div id="menu-completo" class="hidden">
             <div id="sec-primi" class="menu-section">
-                <h3>🍝 Primi Piatti (€ 5,00)</h3>
-                <div class="content"></div>
+                <h3>🍝 Primi (€ 5,00)</h3> <div class="content"></div>
             </div>
             <div id="sec-secondi" class="menu-section">
-                <h3>🍖 Secondi Piatti (€ 5,00)</h3>
-                <div class="content"></div>
+                <h3>🍖 Secondi (€ 5,00)</h3> <div class="content"></div>
             </div>
             <div id="sec-contorni" class="menu-section">
-                <h3>🥗 Contorni (€ 3,00)</h3>
-                <div class="content"></div>
+                <h3>🥗 Contorni (€ 3,00)</h3> <div class="content"></div>
             </div>
             <div id="sec-pizze" class="menu-section" style="border-left: 5px solid #ffc107;">
                 <h3 style="color: #d39e00;">🍕 Pizze (€ 7,00)</h3>
-                <p><strong>Disponibili oggi:</strong></p>
                 <div id="lista-pizze-display" style="margin-bottom:15px; font-style:italic;"></div>
-                <p style="font-size:0.9em;">Scrivi la pizza che vuoi:</p>
                 <div id="custom-pizza-container">
                     <div class="pizza-input-group">
                         <input type="text" class="pizza-name" placeholder="Es. Margherita...">
@@ -75,8 +70,13 @@
             <option value="tavolo">Al Tavolo (Mangio qui)</option>
         </select>
 
-        <div id="div-tavolo" class="hidden">
-            <input type="text" id="nome-tavolo" placeholder="NOME TAVOLO (es. RUSSO)">
+        <div id="div-tavolo" class="hidden" style="background:#f9f9f9; padding:15px; border-radius:10px; border:1px solid #eee; margin-bottom:15px;">
+            <label style="color:#d35400;">Nome del Tavolo:</label>
+            <input type="text" id="nome-tavolo" placeholder="ES. RUSSO (Usate tutti lo stesso nome!)" style="margin-top:5px;">
+            
+            <label style="color:#2980b9;">Quante persone siete per questo ordine?</label>
+            <input type="number" id="num-persone" placeholder="Es. 4" min="1" style="margin-top:5px;">
+            <small style="color:#666; display:block; margin-top:-10px; margin-bottom:10px;">(Se si aggiungono amici dopo, scrivi solo quanti sono i nuovi)</small>
         </div>
 
         <label>Orario Ritiro/Pranzo</label>
@@ -119,8 +119,6 @@
 
     if (!firebase.apps.length) { try { firebase.initializeApp(firebaseConfig); } catch(e) { alert("Errore Config: " + e.message); } }
     const db = firebase.database();
-    
-    // Variabile globale per salvare il totale
     let totaleOrdineCalcolato = 0;
 
     db.ref('menu').on('value', (snapshot) => {
@@ -131,13 +129,11 @@
         renderSection('sec-primi', m.primi, 'primo');
         renderSection('sec-secondi', m.secondi, 'secondo');
         renderSection('sec-contorni', m.contorni, 'contorno');
-        const displayPizze = document.getElementById('lista-pizze-display');
-        displayPizze.innerHTML = m.pizze ? m.pizze.replace(/\n/g, "<br>") : "Chiedi al personale.";
+        document.getElementById('lista-pizze-display').innerHTML = m.pizze ? m.pizze.replace(/\n/g, "<br>") : "Chiedi al personale.";
     }, (error) => {
         document.getElementById('menu-loading').innerHTML = "<strong style='color:red'>Errore caricamento.</strong>";
     });
 
-    // Passiamo il 'tipo' (primo, secondo, contorno) per i calcoli
     function renderSection(sectionId, textData, tipoPiatto) {
         const container = document.querySelector(`#${sectionId} .content`);
         container.innerHTML = "";
@@ -166,14 +162,8 @@
         document.getElementById('div-tavolo').style.display = (val === 'tavolo') ? 'block' : 'none';
     }
 
-    // --- 💰 IL CERVELLO DEI PREZZI ---
     function calcolaTotale() {
-        let nPrimi = 0;
-        let nSecondi = 0;
-        let nContorni = 0;
-        let nPizze = 0;
-
-        // 1. Conta quanti piatti per tipo
+        let nPrimi = 0, nSecondi = 0, nContorni = 0, nPizze = 0;
         document.querySelectorAll('.qty-piatto').forEach(input => {
             const val = parseInt(input.value) || 0;
             if (val > 0) {
@@ -183,64 +173,42 @@
                 if(tipo === 'contorno') nContorni += val;
             }
         });
-
-        // 2. Conta pizze
         document.querySelectorAll('.pizza-qty').forEach(input => {
             const val = parseInt(input.value) || 0;
-            // Consideriamo pizza solo se c'è un nome scritto o se è quella di default attiva
-            const group = input.closest('.pizza-input-group');
-            const nome = group.querySelector('.pizza-name').value;
-            // Contiamo la pizza solo se ha una quantità > 0 (il nome è opzionale per il calcolo prezzo live, ma obbligatorio per invio)
             if(val > 0) nPizze += val;
         });
 
-        // 3. LOGICA OFFERTA (1P + 1S + 1C = 7€)
-        // Il numero di menu completi è il minimo comune tra primi, secondi e contorni
         let nMenuCompleti = Math.min(nPrimi, nSecondi, nContorni);
+        let restoP = nPrimi - nMenuCompleti;
+        let restoS = nSecondi - nMenuCompleti;
+        let restoC = nContorni - nMenuCompleti;
 
-        // Calcoliamo i piatti "sciolti" rimasti fuori dall'offerta
-        let restantiPrimi = nPrimi - nMenuCompleti;
-        let restantiSecondi = nSecondi - nMenuCompleti;
-        let restantiContorni = nContorni - nMenuCompleti;
-
-        // 4. CALCOLO FINALE
-        let costoMenu = nMenuCompleti * 7.00;
-        let costoPrimiSecondiSciolti = (restantiPrimi + restantiSecondi) * 5.00;
-        let costoContorniSciolti = restantiContorni * 3.00;
-        let costoPizze = nPizze * 7.00;
-
-        let totale = costoMenu + costoPrimiSecondiSciolti + costoContorniSciolti + costoPizze;
-        
-        // Aggiorna variabile globale e display
+        let totale = (nMenuCompleti * 7.00) + ((restoP + restoS) * 5.00) + (restoC * 3.00) + (nPizze * 7.00);
         totaleOrdineCalcolato = totale;
         document.getElementById('display-totale').innerText = "€ " + totale.toFixed(2).replace('.', ',');
     }
 
     function inviaOrdine() {
-        // --- 1. IL VIGILE DELL'ORARIO ---
-        const now = new Date();
-        const minutiTotaliAdesso = (now.getHours() * 60) + now.getMinutes();
-        const APERTURA = 9 * 60;
-        const CHIUSURA = 12 * 60 + 15;
-
-        // SCOMMENTA PER ATTIVARE BLOCCO ORARIO
-        /*
-        if (minutiTotaliAdesso < APERTURA || minutiTotaliAdesso > CHIUSURA) {
-            alert("⛔️ ORDINI CHIUSI!\n\nPuoi inviare l'ordine solo tra le 09:00 e le 12:15.");
-            return;
-        }
-        */
-
         const nome = document.getElementById('nome').value;
         const telefono = document.getElementById('telefono').value;
         const tipo = document.getElementById('tipo-ordine').value;
         const tavolo = document.getElementById('nome-tavolo').value;
+        const numPersone = document.getElementById('num-persone').value; // NUOVO CAMPO
         const orarioScelto = document.getElementById('orario').value;
 
         if(!nome) { alert("Inserisci il tuo nome!"); return; }
         if(!telefono) { alert("Inserisci il numero di telefono!"); return; }
         if(!orarioScelto) { alert("⚠️ Devi scegliere a che ora vuoi mangiare!"); return; }
-        if(tipo === 'tavolo' && !tavolo) { alert("Inserisci il nome del tavolo!"); return; }
+
+        let tavoloFinale = "N/A";
+        let coperti = 0;
+
+        if(tipo === 'tavolo') {
+            if(!tavolo) { alert("Inserisci il nome del tavolo!"); return; }
+            if(!numPersone || numPersone < 1) { alert("Inserisci quante persone siete al tavolo!"); return; }
+            tavoloFinale = tavolo.toUpperCase();
+            coperti = parseInt(numPersone);
+        }
 
         let carrello = [];
         document.querySelectorAll('.qty-piatto').forEach(input => {
@@ -255,7 +223,6 @@
 
         if(carrello.length === 0) { alert("Il carrello è vuoto!"); return; }
 
-        // Ricalcoliamo il totale per sicurezza prima di inviare
         calcolaTotale();
 
         const ordine = {
@@ -263,16 +230,17 @@
             telefono: telefono,
             items: carrello,
             tipo: tipo,
-            tavolo: (tipo === 'tavolo') ? tavolo.toUpperCase() : "N/A",
+            tavolo: tavoloFinale,
+            coperti: coperti, // INVIAMO IL NUMERO DI PERSONE
             orario: orarioScelto,
-            totale: totaleOrdineCalcolato, // <--- INVIAMO IL TOTALE
+            totale: totaleOrdineCalcolato,
             timestamp: Date.now()
         };
 
         if(confirm(`Il totale è € ${totaleOrdineCalcolato.toFixed(2)}. Confermi l'ordine?`)) {
             db.ref('ordini').push(ordine)
                 .then(() => {
-                    alert("✅ Ordine Inviato! Totale da pagare: € " + totaleOrdineCalcolato.toFixed(2));
+                    alert("✅ Ordine Inviato! Grazie.");
                     location.reload();
                 })
                 .catch(err => alert("Errore invio: " + err.message));
@@ -281,7 +249,6 @@
 </script>
 </body>
 </html>
-
 
 
 
