@@ -14,38 +14,47 @@
             --primary: #2c3e50;
             --accent: #27ae60;
             --danger: #e74c3c;
-            --bg: #f4f7f6;
+            --brand-green: #416058; /* IL TUO VERDE */
+            --bg: #416058;
             --surface: #ffffff;
             --border: #e2e6ea;
         }
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: var(--bg);
+            background: var(--brand-green); /* Sfondo verde */
             margin: 0;
             padding: 20px;
-            color: #2d3436;
+            color: #ffffff; /* Testo principale bianco per contrasto */
         }
 
         .container {
             max-width: 800px;
             margin: 0 auto;
-            background: transparent;
         }
 
-        /* Header e Titoli */
-        h1 { color: var(--primary); text-align: center; font-weight: 700; margin-bottom: 20px; }
-        h2 { font-size: 1.2em; color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-top: 30px; }
+        /* Header e Titoli (Bianchi sullo sfondo verde) */
+        h1, h2 { color: #ffffff; text-align: center; font-weight: 700; }
+        h1 { margin-bottom: 20px; }
+        h2 { font-size: 1.2em; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px; margin-top: 30px; }
 
-        /* Box Bianchi (Cards) */
-        .admin-panel, .menu-section, .card {
+        /* Box Bianchi (Cards) - Testo interno scuro */
+        .admin-panel, .menu-section, .card, #login-box, #history-box {
             background: var(--surface);
             padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             margin-bottom: 20px;
-            border: 1px solid var(--border);
+            border: none;
+            color: #2d3436; /* Testo scuro dentro i box bianchi */
         }
+
+        /* Titoli dentro i box bianchi (Tornano scuri) */
+        .admin-panel h2, #login-box h2, #history-box h3 {
+            color: var(--primary);
+            border-bottom: 2px solid var(--border);
+        }
+        .menu-section h3 { color: var(--primary); }
 
         /* Input Styles */
         input, textarea {
@@ -56,11 +65,12 @@
             font-family: inherit;
             margin-bottom: 10px;
             box-sizing: border-box;
+            background: #f9f9f9;
         }
         .price-input {
             width: 80px !important; display: inline-block; 
             margin-left: 10px !important; text-align: center;
-            border-color: var(--accent) !important; color: var(--accent); font-weight: bold;
+            border-color: var(--accent) !important; color: var(--accent); font-weight: bold; background: #fff;
         }
 
         /* Bottoni */
@@ -84,7 +94,7 @@
             color: white; padding: 20px; border-radius: 12px;
             text-align: center; font-size: 1.3em;
             box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
-            margin-bottom: 20px;
+            margin-bottom: 20px; border: none;
         }
 
         /* Card Ordini */
@@ -108,7 +118,7 @@
         }
 
         /* Tavoli */
-        .tavolo-group { border: 2px dashed #dfe6e9; background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+        .tavolo-group { border: 2px dashed #dfe6e9; background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 20px; color: #2d3436; }
         .tavolo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
         .tavolo-name { font-weight: 800; color: var(--primary); font-size: 1.1em; }
         .tavolo-info-btn { background: var(--primary); color: white; font-size: 0.8em; width: auto; padding: 5px 10px; margin: 0; }
@@ -122,14 +132,14 @@
         .panic-mode { background: #ffebeb; color: #c0392b; border: 1px solid #fab1a0; }
 
         /* Connection Monitor */
-        #connection-status { position: fixed; top: 15px; right: 15px; z-index: 999; background: white; padding: 6px 15px; border-radius: 50px; font-size: 0.8em; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 8px; }
+        #connection-status { position: fixed; top: 15px; right: 15px; z-index: 999; background: white; padding: 6px 15px; border-radius: 50px; font-size: 0.8em; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 8px; color: #2d3436; }
         .led { width: 8px; height: 8px; border-radius: 50%; }
         .led-on { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
         .led-off { background: #e74c3c; }
 
         /* Overlays */
-        #login-overlay, #history-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(44, 62, 80, 0.9); z-index: 10000; display: flex; justify-content: center; align-items: center; }
-        #login-box, #history-box { background: white; padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; position: relative; }
+        #login-overlay, #history-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(65, 96, 88, 0.95); z-index: 10000; display: flex; justify-content: center; align-items: center; }
+        #login-box, #history-box { background: white; padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; position: relative; color: #2d3436; }
         
         .timeline-item { text-align: left; padding-left: 15px; border-left: 2px solid #dfe6e9; margin-bottom: 15px; padding-bottom: 5px; }
         .timeline-time { color: var(--accent); font-weight: bold; font-size: 0.9em; }
@@ -151,7 +161,7 @@
 
 <div id="history-overlay" style="display:none;">
     <div id="history-box">
-        <button onclick="document.getElementById('history-overlay').style.display='none'" style="position:absolute; top:10px; right:10px; width:30px; padding:5px; background:none; font-size:1.5em; color:#333;">&times;</button>
+        <button onclick="document.getElementById('history-overlay').style.display='none'" style="position:absolute; top:10px; right:10px; width:30px; padding:5px; background:none; font-size:1.5em; color:#333; border:none;">&times;</button>
         <h3>Cronologia Tavolo</h3>
         <h4 id="history-title" style="color:var(--accent)"></h4>
         <div id="history-list" style="margin-top:20px; max-height:300px; overflow-y:auto;"></div>
@@ -162,11 +172,11 @@
     
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
         <h1 style="margin:0;">Dashboard</h1>
-        <button onclick="logout()" style="width:auto; background:#95a5a6; color:white; padding:8px 15px; font-size:0.8em;">Esci</button>
+        <button onclick="logout()" style="width:auto; background:rgba(255,255,255,0.2); color:white; padding:8px 15px; font-size:0.8em;">Esci</button>
     </div>
 
     <div id="revenue-box">
-        <div style="font-size:0.8em; opacity:0.8;">INCASSO OGGI</div>
+        <div style="font-size:0.8em; opacity:0.9;">INCASSO OGGI</div>
         <strong id="total-revenue">€ 0,00</strong>
     </div>
 
@@ -204,7 +214,7 @@
     </div>
 
     <h2>Ordini in Arrivo</h2>
-    <div id="status-db" style="text-align:center; font-size:0.8em; color:#999; margin-bottom:15px;">In attesa...</div>
+    <div id="status-db" style="text-align:center; font-size:0.8em; color:rgba(255,255,255,0.7); margin-bottom:15px;">In attesa...</div>
 
     <h3>🥡 Asporto</h3>
     <div id="lista-asporto"></div>
@@ -287,8 +297,8 @@
         divAsporto.innerHTML = ""; divTavoli.innerHTML = ""; globalOrdersByTable = {}; globalRawData = data || {};
 
         if(!data) { 
-            divAsporto.innerHTML = "<div style='text-align:center; color:#ccc; font-style:italic;'>Nessun ordine.</div>"; 
-            divTavoli.innerHTML = "<div style='text-align:center; color:#ccc; font-style:italic;'>Nessun ordine.</div>"; 
+            divAsporto.innerHTML = "<div style='text-align:center; color:rgba(255,255,255,0.6); font-style:italic;'>Nessun ordine.</div>"; 
+            divTavoli.innerHTML = "<div style='text-align:center; color:rgba(255,255,255,0.6); font-style:italic;'>Nessun ordine.</div>"; 
             document.getElementById('total-revenue').innerText = "€ 0,00"; lastOrderCount = 0; return; 
         }
 
@@ -309,7 +319,7 @@
             let piattiHTML = ""; if(ordine.items) { piattiHTML = ordine.items.map(i => `<div style="margin-bottom:2px;">• <strong>${i.qty}</strong> ${i.nome}</div>`).join(""); }
             const telefonoHTML = ordine.telefono ? `<div style="font-size:0.85em; margin-top:5px; color:#3498db;">📞 ${ordine.telefono}</div>` : "";
             const totaleHTML = ordine.totale ? `<div style="margin-top:10px; font-weight:bold; color:#27ae60; border-top:1px dashed #eee; padding-top:5px;">€ ${parseFloat(ordine.totale).toFixed(2)}</div>` : "";
-            const copertiOrdine = (ordine.tipo === 'tavolo' && ordine.coperti) ? `<span style="font-size:0.8em; background:#eee; padding:2px 6px; border-radius:4px; margin-left:5px;">👤 +${ordine.coperti}</span>` : "";
+            const copertiOrdine = (ordine.tipo === 'tavolo' && ordine.coperti) ? `<span style="font-size:0.8em; background:#eee; padding:2px 6px; border-radius:4px; margin-left:5px; color:#333;">👤 +${ordine.coperti}</span>` : "";
             const noteHTML = ordine.note ? `<div style="background:#fff3cd; color:#856404; padding:5px; border-radius:4px; font-size:0.85em; margin-top:5px;">⚠️ ${ordine.note}</div>` : "";
             const ordineString = encodeURIComponent(JSON.stringify(ordine));
             const diffMinutes = (now - (ordine.timestamp || 0)) / 1000 / 60;
@@ -337,8 +347,8 @@
             const totalePersone = contaPersonePerTavolo[tavolo] || 0;
             divTavoli.innerHTML += `<div class="tavolo-group"><div class="tavolo-header"><span class="tavolo-name">${tavolo}</span><button class="tavolo-info-btn" onclick="apriCronologia('${tavolo}')">🕒 Storia</button><span style="font-size:0.9em; font-weight:bold;">${totalePersone} Pers.</span></div>${cards.join("")}</div>`;
         }
-        if(divAsporto.innerHTML === "") { divAsporto.innerHTML = "<div style='text-align:center; color:#ccc;'>Nessun ordine.</div>"; }
-        if(divTavoli.innerHTML === "") { divTavoli.innerHTML = "<div style='text-align:center; color:#ccc;'>Nessun ordine.</div>"; }
+        if(divAsporto.innerHTML === "") { divAsporto.innerHTML = "<div style='text-align:center; color:rgba(255,255,255,0.6);'>Nessun ordine.</div>"; }
+        if(divTavoli.innerHTML === "") { divTavoli.innerHTML = "<div style='text-align:center; color:rgba(255,255,255,0.6);'>Nessun ordine.</div>"; }
     }
 
     function apriCronologia(tavolo) {
@@ -391,4 +401,5 @@
 </script>
 </body>
 </html>
+
 
