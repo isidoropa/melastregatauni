@@ -8,6 +8,23 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        /* Stile per la lista pizze confermate */
+        .pizza-item-confirmed {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #fff3cd; padding: 8px 10px; border-radius: 6px;
+            margin-bottom: 5px; border: 1px solid #ffeeba;
+        }
+        .btn-remove-pizza {
+            background: #ff7675; color: white; border: none; 
+            padding: 2px 8px; border-radius: 4px; cursor: pointer; margin-left: 10px;
+        }
+        .btn-confirm-pizza {
+            background: #27ae60; color: white; border: none;
+            padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer;
+            width: auto; margin-left: 5px;
+        }
+    </style>
 </head>
 <body style="padding-bottom: 80px;">
 
@@ -51,13 +68,16 @@
             <div id="sec-pizze" class="menu-section" style="border-left: 5px solid #ffc107;">
                 <h3 style="color: #d39e00;">🍕 Pizze (€ 7,00)</h3>
                 <div id="lista-pizze-display" style="margin-bottom:15px; font-style:italic;"></div>
-                <div id="custom-pizza-container">
-                    <div class="pizza-input-group">
-                        <input type="text" class="pizza-name" placeholder="Es. Margherita...">
-                        <input type="number" class="pizza-qty qty-input" value="1" min="1" oninput="calcolaTotale()" onchange="calcolaTotale()">
-                    </div>
+                
+                <p style="font-size:0.9em; margin-bottom:5px;">Scrivi la pizza e clicca OK per aggiungerla:</p>
+                
+                <div style="display:flex; align-items:center; margin-bottom:10px;">
+                    <input type="text" id="temp-pizza-name" placeholder="Es. Margherita" style="margin:0; flex-grow:1;">
+                    <input type="number" id="temp-pizza-qty" value="1" min="1" style="margin:0 5px; width:50px; text-align:center;">
+                    <button class="btn-confirm-pizza" onclick="confermaPizza()">OK</button>
                 </div>
-                <button class="add-btn" onclick="aggiungiRigaPizza()">+ Altra Pizza</button>
+
+                <div id="pizze-aggiunte-list"></div>
             </div>
         </div>
 
@@ -65,7 +85,7 @@
         <h3>I tuoi dati</h3>
         
         <input type="text" id="nome" placeholder="Nome e Cognome" required>
-        <input type="tel" id="telefono" placeholder="Numero di Telefono (Solo numeri)" 
+        <input type="tel" id="telefono" placeholder="Telefono (Solo numeri)" 
                pattern="[0-9]*" inputmode="numeric" 
                oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
         
@@ -78,9 +98,8 @@
         <div id="div-tavolo" class="hidden" style="background:#f9f9f9; padding:15px; border-radius:10px; border:1px solid #eee; margin-bottom:15px;">
             <label style="color:#d35400;">Nome del Tavolo:</label>
             <input type="text" id="nome-tavolo" placeholder="ES. RUSSO" style="margin-top:5px;">
-            <label style="color:#2980b9;">Quante persone siete per questo ordine?</label>
+            <label style="color:#2980b9;">Quante persone siete?</label>
             <input type="number" id="num-persone" placeholder="Es. 4" min="1" style="margin-top:5px;">
-            <small style="color:#666; display:block; margin-top:-10px; margin-bottom:10px;">(Se si aggiungono amici dopo, scrivi solo quanti sono i nuovi)</small>
         </div>
 
         <label>Orario Ritiro/Pranzo</label>
@@ -97,6 +116,9 @@
             <option value="14:00">14:00</option>
             <option value="14:15">14:15</option>
         </select>
+
+        <label style="margin-top:20px; display:block;">Note per la cucina (Opzionale)</label>
+        <textarea id="note-ordine" rows="3" placeholder="Es. Niente cipolla, allergie, citofonare Rossi..." style="width:100%; border:2px solid #ddd; border-radius:8px; padding:10px;"></textarea>
 
         <button onclick="inviaOrdine()" style="margin-top:20px; font-size:1.2em;">INVIA ORDINE</button>
     </div>
@@ -123,7 +145,9 @@
 
     if (!firebase.apps.length) { try { firebase.initializeApp(firebaseConfig); } catch(e) { alert("Errore Config: " + e.message); } }
     const db = firebase.database();
+    
     let totaleOrdineCalcolato = 0;
+    let carrelloPizze = []; // Array per le pizze confermate
 
     db.ref('menu').on('value', (snapshot) => {
         document.getElementById('menu-loading').style.display = 'none';
@@ -133,7 +157,7 @@
         renderSection('sec-primi', m.primi, 'primo');
         renderSection('sec-secondi', m.secondi, 'secondo');
         renderSection('sec-contorni', m.contorni, 'contorno');
-        renderSection('sec-insalatone', m.insalatone, 'insalatona'); // CARICA INSALATONE
+        renderSection('sec-insalatone', m.insalatone, 'insalatona');
         document.getElementById('lista-pizze-display').innerHTML = m.pizze ? m.pizze.replace(/\n/g, "<br>") : "Chiedi al personale.";
     }, (error) => {
         document.getElementById('menu-loading').innerHTML = "<strong style='color:red'>Errore caricamento.</strong>";
@@ -154,11 +178,45 @@
         });
     }
 
-    function aggiungiRigaPizza() {
-        const div = document.createElement('div');
-        div.className = 'pizza-input-group';
-        div.innerHTML = `<input type="text" class="pizza-name" placeholder="Altra pizza..."><input type="number" class="pizza-qty qty-input" value="1" min="1" oninput="calcolaTotale()" onchange="calcolaTotale()">`;
-        document.getElementById('custom-pizza-container').appendChild(div);
+    // --- NUOVA LOGICA PIZZE ---
+    function confermaPizza() {
+        const nameInput = document.getElementById('temp-pizza-name');
+        const qtyInput = document.getElementById('temp-pizza-qty');
+        const nome = nameInput.value.trim();
+        const qty = parseInt(qtyInput.value);
+
+        if(nome === "") { alert("Scrivi il nome della pizza!"); return; }
+        if(qty < 1) { alert("Quantità non valida!"); return; }
+
+        // Aggiungi all'array
+        carrelloPizze.push({ nome: "PIZZA: " + nome, qty: qty, tipo: 'pizza' });
+        
+        // Pulisci input
+        nameInput.value = "";
+        qtyInput.value = 1;
+
+        // Aggiorna vista e totale
+        renderPizzeAggiunte();
+        calcolaTotale();
+    }
+
+    function renderPizzeAggiunte() {
+        const container = document.getElementById('pizze-aggiunte-list');
+        container.innerHTML = "";
+        carrelloPizze.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'pizza-item-confirmed';
+            div.innerHTML = `
+                <span>🍕 <strong>${item.qty}x</strong> ${item.nome.replace("PIZZA: ", "")}</span>
+                <button class="btn-remove-pizza" onclick="rimuoviPizza(${index})">X</button>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function rimuoviPizza(index) {
+        carrelloPizze.splice(index, 1);
+        renderPizzeAggiunte();
         calcolaTotale();
     }
 
@@ -170,6 +228,7 @@
     function calcolaTotale() {
         let nPrimi = 0, nSecondi = 0, nContorni = 0, nInsalatone = 0, nPizze = 0;
         
+        // Conta piatti menu
         document.querySelectorAll('.qty-piatto').forEach(input => {
             const val = parseInt(input.value) || 0;
             if (val > 0) {
@@ -177,21 +236,21 @@
                 if(tipo === 'primo') nPrimi += val;
                 if(tipo === 'secondo') nSecondi += val;
                 if(tipo === 'contorno') nContorni += val;
-                if(tipo === 'insalatona') nInsalatone += val; // Conta Insalatone
+                if(tipo === 'insalatona') nInsalatone += val;
             }
         });
-        document.querySelectorAll('.pizza-qty').forEach(input => {
-            const val = parseInt(input.value) || 0;
-            if(val > 0) nPizze += val;
+
+        // Conta pizze dall'array confermato (NON dagli input)
+        carrelloPizze.forEach(item => {
+            nPizze += item.qty;
         });
 
-        // Logica Offerta (solo Primi, Secondi, Contorni)
+        // Logica Offerta
         let nMenuCompleti = Math.min(nPrimi, nSecondi, nContorni);
         let restoP = nPrimi - nMenuCompleti;
         let restoS = nSecondi - nMenuCompleti;
         let restoC = nContorni - nMenuCompleti;
 
-        // Calcolo finale con Insalatone a 6€
         let totale = (nMenuCompleti * 7.00) + 
                      ((restoP + restoS) * 5.00) + 
                      (restoC * 3.00) + 
@@ -209,6 +268,7 @@
         const tavolo = document.getElementById('nome-tavolo').value;
         const numPersone = document.getElementById('num-persone').value;
         const orarioScelto = document.getElementById('orario').value;
+        const note = document.getElementById('note-ordine').value; // NUOVO
 
         if(!nome) { alert("Inserisci il tuo nome!"); return; }
         if(!telefono) { alert("Inserisci il numero di telefono!"); return; }
@@ -224,15 +284,16 @@
             coperti = parseInt(numPersone);
         }
 
+        // Costruisci carrello piatti normali
         let carrello = [];
         document.querySelectorAll('.qty-piatto').forEach(input => {
             const q = parseInt(input.value);
             if(q > 0) carrello.push({ nome: input.dataset.nome, qty: q });
         });
-        document.querySelectorAll('.pizza-input-group').forEach(group => {
-            const nomePizza = group.querySelector('.pizza-name').value;
-            const qPizza = parseInt(group.querySelector('.pizza-qty').value);
-            if(nomePizza.trim() !== "" && qPizza > 0) carrello.push({ nome: "PIZZA: " + nomePizza, qty: qPizza });
+
+        // Aggiungi pizze confermate
+        carrelloPizze.forEach(item => {
+            carrello.push(item);
         });
 
         if(carrello.length === 0) { alert("Il carrello è vuoto!"); return; }
@@ -247,6 +308,7 @@
             tavolo: tavoloFinale,
             coperti: coperti,
             orario: orarioScelto,
+            note: note, // INVIAMO LE NOTE
             totale: totaleOrdineCalcolato,
             timestamp: Date.now()
         };
@@ -263,7 +325,6 @@
 </script>
 </body>
 </html>
-
 
 
 
