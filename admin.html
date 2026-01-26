@@ -14,7 +14,6 @@
             --primary: #2c3e50;
             --accent: #27ae60;
             --danger: #e74c3c;
-            --warning: #f39c12;
             --purple: #9b59b6;
             --brand-green: #416058;
             --surface: #ffffff;
@@ -57,7 +56,6 @@
         /* CARD STYLES */
         .card { position: relative; border-left: 5px solid #bdc3c7; transition: all 0.3s; }
         .card-fresh { border-left-color: #f1c40f; background: #fffdf0; animation: pulse 2s infinite; }
-        
         .card-completed { opacity: 0.5; background: #f0f0f0; border-left-color: #7f8c8d !important; }
         .card-completed div { text-decoration: line-through; }
         .card-completed .btn-check { background: #7f8c8d; }
@@ -72,7 +70,7 @@
         
         .btn-delete-single { background: #fee; color: #c0392b; }
         .btn-check { background: #e8f5e9; color: #27ae60; font-size: 1.2em; }
-        .btn-edit { background: #fff8e1; color: #f39c12; font-size: 1.1em; } /* Matita Gialla */
+        .btn-edit { background: #fff8e1; color: #f39c12; font-size: 1.1em; }
 
         .tavolo-group { border: 2px dashed #dfe6e9; background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 20px; color: #2d3436; }
         .tavolo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 8px; flex-wrap: wrap; gap: 10px;}
@@ -202,7 +200,7 @@
     let globalRawData = {};
     let lastOrderCount = 0;
     let isFirstLoad = true;
-    let currentEditKey = null; // Per la modifica
+    let currentEditKey = null;
 
     // --- AUDIO ---
     let audioCtx = null;
@@ -262,9 +260,7 @@
 
     function renderOrdini(data) {
         const divAsporto = document.getElementById('lista-asporto'); const divTavoli = document.getElementById('lista-tavoli');
-        divAsporto.innerHTML = ""; divTavoli.innerHTML = ""; 
-        globalOrdersByTable = {}; 
-        globalRawData = data || {};
+        divAsporto.innerHTML = ""; divTavoli.innerHTML = ""; globalOrdersByTable = {}; globalRawData = data || {};
 
         if(!data) { 
             divAsporto.innerHTML = "<div style='text-align:center; color:rgba(255,255,255,0.6); font-style:italic;'>Nessun ordine.</div>"; 
@@ -282,7 +278,6 @@
                 const nomeTav = ordine.tavolo;
                 if (!contaPersonePerTavolo[nomeTav]) { contaPersonePerTavolo[nomeTav] = 0; }
                 contaPersonePerTavolo[nomeTav] += (ordine.coperti || 0);
-                
                 if (!globalOrdersByTable[nomeTav]) { globalOrdersByTable[nomeTav] = []; }
                 globalOrdersByTable[nomeTav].push(ordine);
                 if(!gruppiTavoli[nomeTav]) { gruppiTavoli[nomeTav] = []; }
@@ -296,16 +291,9 @@
             const ordineString = encodeURIComponent(JSON.stringify(ordine));
             const diffMinutes = (now - (ordine.timestamp || 0)) / 1000 / 60;
             
-            let cardClass = "card"; 
-            let badgeHTML = "";
-            let btnCheckText = "✔";
-            
-            if (ordine.completed) {
-                cardClass += " card-completed";
-            } else {
-                if (diffMinutes < 5) { cardClass += " card-fresh"; badgeHTML = '<div class="badge-new">NEW</div>'; } 
-                else if (diffMinutes > 30) { cardClass += " card-old"; }
-            }
+            let cardClass = "card"; let badgeHTML = ""; let btnCheckText = "✔";
+            if (ordine.completed) { cardClass += " card-completed"; } 
+            else { if (diffMinutes < 5) { cardClass += " card-fresh"; badgeHTML = '<div class="badge-new">NEW</div>'; } else if (diffMinutes > 30) { cardClass += " card-old"; } }
 
             const htmlCard = `
                 <div class="${cardClass}" style="border-left-color: ${ordine.tipo === 'asporto' ? '#27ae60' : '#2980b9'};">
@@ -332,27 +320,15 @@
 
         for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
             const totalePersone = contaPersonePerTavolo[tavolo] || 0;
-            divTavoli.innerHTML += `
-                <div class="tavolo-group">
-                    <div class="tavolo-header">
-                        <span class="tavolo-name">${tavolo}</span>
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <button class="tavolo-info-btn" onclick="mostraContoTavolo('${tavolo}')">💰 CONTO TAVOLO</button>
-                            <span style="font-size:0.9em; font-weight:bold; color:#555;">${totalePersone} Pers.</span>
-                        </div>
-                    </div>
-                    ${cards.join("")}
-                </div>`;
+            divTavoli.innerHTML += `<div class="tavolo-group"><div class="tavolo-header"><span class="tavolo-name">${tavolo}</span><div style="display:flex; align-items:center; gap:10px;"><button class="tavolo-info-btn" onclick="mostraContoTavolo('${tavolo}')">💰 CONTO TAVOLO</button><span style="font-size:0.9em; font-weight:bold; color:#555;">${totalePersone} Pers.</span></div></div>${cards.join("")}</div>`;
         }
         if(divAsporto.innerHTML === "") { divAsporto.innerHTML = "<div style='text-align:center; color:rgba(255,255,255,0.6);'>Nessun ordine.</div>"; }
         if(divTavoli.innerHTML === "") { divTavoli.innerHTML = "<div style='text-align:center; color:rgba(255,255,255,0.6);'>Nessun ordine.</div>"; }
     }
 
-    function toggleCompletato(key, currentStatus) {
-        db.ref('ordini/' + key).update({ completed: !currentStatus });
-    }
+    function toggleCompletato(key, currentStatus) { db.ref('ordini/' + key).update({ completed: !currentStatus }); }
 
-    // --- MODIFICA ORDINE ---
+    // --- MODIFICA ORDINE CON RICALCOLO AUTO ---
     function apriModifica(key) {
         currentEditKey = key;
         const ordine = globalRawData[key];
@@ -363,14 +339,27 @@
             ordine.items.forEach((item, index) => {
                 container.innerHTML += `
                     <div class="edit-item-row" id="edit-item-${index}">
-                        <input type="number" class="edit-item-qty" value="${item.qty}">
-                        <input type="text" class="edit-item-name" value="${item.nome}">
-                        <button class="btn-remove-item" onclick="document.getElementById('edit-item-${index}').remove()">X</button>
+                        <input type="number" class="edit-item-qty" value="${item.qty}" oninput="ricalcolaTotaleModifica()">
+                        <input type="text" class="edit-item-name" value="${item.nome}" oninput="ricalcolaTotaleModifica()">
+                        <button class="btn-remove-item" onclick="{document.getElementById('edit-item-${index}').remove(); ricalcolaTotaleModifica();}">X</button>
                     </div>`;
             });
         }
-        document.getElementById('edit-total-price').value = ordine.totale || 0;
+        document.getElementById('edit-total-price').value = parseFloat(ordine.totale || 0).toFixed(2);
         document.getElementById('edit-overlay').style.display = 'flex';
+    }
+
+    function ricalcolaTotaleModifica() {
+        let total = 0;
+        const rows = document.querySelectorAll('.edit-item-row');
+        rows.forEach(row => {
+            const qty = parseInt(row.querySelector('.edit-item-qty').value) || 0;
+            const name = row.querySelector('.edit-item-name').value;
+            const price = getPriceForItem(name); // Cerca prezzo nel menu corrente
+            total += (qty * price);
+        });
+        // Aggiorna il campo totale (lasciandolo comunque editabile)
+        document.getElementById('edit-total-price').value = total.toFixed(2);
     }
 
     function salvaModifica() {
@@ -379,73 +368,50 @@
         rows.forEach(row => {
             const qty = parseInt(row.querySelector('.edit-item-qty').value);
             const nome = row.querySelector('.edit-item-name').value;
-            if (qty > 0 && nome.trim() !== "") {
-                newItems.push({ qty, nome });
-            }
+            if (qty > 0 && nome.trim() !== "") newItems.push({ qty, nome });
         });
-
         const newTotal = parseFloat(document.getElementById('edit-total-price').value) || 0;
-
-        db.ref('ordini/' + currentEditKey).update({
-            items: newItems,
-            totale: newTotal
-        }).then(() => {
-            document.getElementById('edit-overlay').style.display = 'none';
-        });
+        db.ref('ordini/' + currentEditKey).update({ items: newItems, totale: newTotal }).then(() => { document.getElementById('edit-overlay').style.display = 'none'; });
     }
 
     // --- LOGICA CONTO TAVOLO ---
     let currentTableData = null;
-
     function getPriceForItem(name) {
         const menuPrimi = document.getElementById('menu-primi').value;
         const menuSecondi = document.getElementById('menu-secondi').value;
         const menuContorni = document.getElementById('menu-contorni').value;
         const menuInsalatone = document.getElementById('menu-insalatone').value;
-        
         let price = 0;
         const cleanName = name.replace("PIZZA: ", "").trim();
-
         if (name.startsWith("PIZZA:")) price = parseFloat(document.getElementById('price-pizze').value) || 0;
         else if (menuPrimi.includes(cleanName)) price = parseFloat(document.getElementById('price-primi').value) || 0;
         else if (menuSecondi.includes(cleanName)) price = parseFloat(document.getElementById('price-secondi').value) || 0;
         else if (menuContorni.includes(cleanName)) price = parseFloat(document.getElementById('price-contorni').value) || 0;
         else if (menuInsalatone.includes(cleanName)) price = parseFloat(document.getElementById('price-insalatone').value) || 0;
-        
         return price;
     }
 
     function mostraContoTavolo(tavolo) {
-        const ordiniTavolo = globalOrdersByTable[tavolo];
-        if (!ordiniTavolo) return;
-
-        let riepilogoItems = {};
-        let totaleRealeTavolo = 0;
-
+        const ordiniTavolo = globalOrdersByTable[tavolo]; if (!ordiniTavolo) return;
+        let riepilogoItems = {}; let totaleRealeTavolo = 0;
         ordiniTavolo.forEach(ord => {
             totaleRealeTavolo += parseFloat(ord.totale || 0);
             if (ord.items) {
                 ord.items.forEach(item => {
-                    const nome = item.nome;
-                    const qty = parseInt(item.qty);
+                    const nome = item.nome; const qty = parseInt(item.qty);
                     if (!riepilogoItems[nome]) riepilogoItems[nome] = { qty: 0, price: getPriceForItem(nome) };
                     riepilogoItems[nome].qty += qty;
                 });
             }
         });
-
-        const container = document.getElementById('bill-content');
-        container.innerHTML = "";
-        
+        const container = document.getElementById('bill-content'); container.innerHTML = "";
         for (const [nome, data] of Object.entries(riepilogoItems)) {
             const lineTotal = data.qty * data.price;
             const priceStr = data.price > 0 ? `(€ ${data.price.toFixed(2)} cad.)` : "";
             container.innerHTML += `<div class="bill-item"><span><strong>${data.qty}x</strong> ${nome.replace("PIZZA: ","")} ${priceStr}</span><span>€ ${lineTotal.toFixed(2)}</span></div>`;
         }
-
         document.getElementById('bill-title').innerText = "Conto Tavolo: " + tavolo;
         document.getElementById('bill-total-value').innerText = "€ " + totaleRealeTavolo.toFixed(2);
-        
         currentTableData = { tavolo, items: riepilogoItems, totale: totaleRealeTavolo };
         document.getElementById('bill-overlay').style.display = 'flex';
     }
