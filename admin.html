@@ -56,6 +56,8 @@
             <h3>🍝 Primi</h3> <textarea id="menu-primi" rows="2"></textarea>
             <h3>🍖 Secondi</h3> <textarea id="menu-secondi" rows="2"></textarea>
             <h3>🥗 Contorni</h3> <textarea id="menu-contorni" rows="2"></textarea>
+            <h3 style="color:#27ae60;">🥬 Insalatone</h3> <textarea id="menu-insalatone" rows="2" placeholder="Es. Insalata Greca, Insalata Pollo..."></textarea>
+            
             <h3>🍕 Pizze (Info)</h3> <textarea id="menu-pizze" rows="2"></textarea>
         </div>
         <button onclick="salvaMenu()">PUBBLICA MENU</button>
@@ -123,6 +125,7 @@
                 document.getElementById('menu-primi').value = m.primi || "";
                 document.getElementById('menu-secondi').value = m.secondi || "";
                 document.getElementById('menu-contorni').value = m.contorni || "";
+                document.getElementById('menu-insalatone').value = m.insalatone || ""; // Carica Insalatone
                 document.getElementById('menu-pizze').value = m.pizze || "";
             }
         });
@@ -141,17 +144,14 @@
         if(!data) { divAsporto.innerHTML = "<p style='color:#999; text-align:center;'>Nessun ordine.</p>"; return; }
 
         let gruppiTavoli = {};
-        // 1. Oggetto per contare le persone totali per tavolo
         let contaPersonePerTavolo = {}; 
 
         Object.values(data).forEach(ordine => {
             if (!ordine.items && !ordine.piatti) return; 
 
-            // Se è un tavolo, aggiorniamo il contatore dei posti
             if (ordine.tipo === 'tavolo' && ordine.tavolo) {
                 const nomeTav = ordine.tavolo;
                 if (!contaPersonePerTavolo[nomeTav]) { contaPersonePerTavolo[nomeTav] = 0; }
-                // Somma il numero di coperti (o 0 se non specificato in vecchi ordini)
                 contaPersonePerTavolo[nomeTav] += (ordine.coperti || 0);
             }
 
@@ -165,7 +165,6 @@
             const telefonoHTML = ordine.telefono ? `<div style="margin-top:5px; font-size:0.9em;">📞 <a href="tel:${ordine.telefono}" style="font-weight:bold; color:#54a0ff;">${ordine.telefono}</a></div>` : "";
             const totaleHTML = ordine.totale ? `<div style="margin-top:10px; font-size:1.1em; color:#27ae60; border-top:1px solid #eee; padding-top:5px;">💰 <strong>Totale: € ${parseFloat(ordine.totale).toFixed(2)}</strong></div>` : "";
             
-            // Mostriamo i coperti di QUESTO ordine specifico
             const copertiOrdine = (ordine.tipo === 'tavolo' && ordine.coperti) ? `<span style="font-size:0.8em; background:#eee; padding:2px 6px; border-radius:4px; margin-left:5px;">👤 +${ordine.coperti}</span>` : "";
 
             const htmlCard = `
@@ -190,9 +189,7 @@
         });
 
         for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
-            // Recuperiamo il totale calcolato prima
             const totalePersone = contaPersonePerTavolo[tavolo] || 0;
-            
             divTavoli.innerHTML += `
                 <div class="tavolo-group">
                     <div class="tavolo-header">
@@ -209,6 +206,7 @@
             primi: document.getElementById('menu-primi').value,
             secondi: document.getElementById('menu-secondi').value,
             contorni: document.getElementById('menu-contorni').value,
+            insalatone: document.getElementById('menu-insalatone').value, // Salva Insalatone
             pizze: document.getElementById('menu-pizze').value
         });
         alert("Menu Pubblicato!");
@@ -223,3 +221,4 @@
 </script>
 </body>
 </html>
+
