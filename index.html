@@ -23,10 +23,11 @@
             <div style="font-weight:bold; font-size:1.1em; color:#d35400;">💰 LISTINO PREZZI</div>
             <ul style="text-align:left; margin:5px 0 0 20px; padding:0;">
                 <li>Solo Primo o Solo Secondo: <strong>€ 5,00</strong></li>
+                <li>Insalatona: <strong>€ 6,00</strong></li>
                 <li>Solo Contorno: <strong>€ 3,00</strong></li>
                 <li>Menu Pizza: <strong>€ 7,00</strong></li>
                 <li style="color:#27ae60; background:#e8f5e9; padding:2px 5px; border-radius:4px;">
-                    ✨ <strong>OFFERTA COMPLETA:</strong> 1P + 1S + 1C = <strong>€ 7,00</strong>
+                    ✨ <strong>OFFERTA:</strong> 1 Primo + 1 Secondo + 1 Contorno = <strong>€ 7,00</strong>
                 </li>
             </ul>
         </div>
@@ -43,6 +44,10 @@
             <div id="sec-contorni" class="menu-section">
                 <h3>🥗 Contorni (€ 3,00)</h3> <div class="content"></div>
             </div>
+            <div id="sec-insalatone" class="menu-section" style="border-left: 5px solid #27ae60;">
+                <h3 style="color:#27ae60;">🥬 Insalatone (€ 6,00)</h3> <div class="content"></div>
+            </div>
+
             <div id="sec-pizze" class="menu-section" style="border-left: 5px solid #ffc107;">
                 <h3 style="color: #d39e00;">🍕 Pizze (€ 7,00)</h3>
                 <div id="lista-pizze-display" style="margin-bottom:15px; font-style:italic;"></div>
@@ -72,8 +77,7 @@
 
         <div id="div-tavolo" class="hidden" style="background:#f9f9f9; padding:15px; border-radius:10px; border:1px solid #eee; margin-bottom:15px;">
             <label style="color:#d35400;">Nome del Tavolo:</label>
-            <input type="text" id="nome-tavolo" placeholder="ES. RUSSO (Usate tutti lo stesso nome!)" style="margin-top:5px;">
-            
+            <input type="text" id="nome-tavolo" placeholder="ES. RUSSO" style="margin-top:5px;">
             <label style="color:#2980b9;">Quante persone siete per questo ordine?</label>
             <input type="number" id="num-persone" placeholder="Es. 4" min="1" style="margin-top:5px;">
             <small style="color:#666; display:block; margin-top:-10px; margin-bottom:10px;">(Se si aggiungono amici dopo, scrivi solo quanti sono i nuovi)</small>
@@ -129,6 +133,7 @@
         renderSection('sec-primi', m.primi, 'primo');
         renderSection('sec-secondi', m.secondi, 'secondo');
         renderSection('sec-contorni', m.contorni, 'contorno');
+        renderSection('sec-insalatone', m.insalatone, 'insalatona'); // CARICA INSALATONE
         document.getElementById('lista-pizze-display').innerHTML = m.pizze ? m.pizze.replace(/\n/g, "<br>") : "Chiedi al personale.";
     }, (error) => {
         document.getElementById('menu-loading').innerHTML = "<strong style='color:red'>Errore caricamento.</strong>";
@@ -163,7 +168,8 @@
     }
 
     function calcolaTotale() {
-        let nPrimi = 0, nSecondi = 0, nContorni = 0, nPizze = 0;
+        let nPrimi = 0, nSecondi = 0, nContorni = 0, nInsalatone = 0, nPizze = 0;
+        
         document.querySelectorAll('.qty-piatto').forEach(input => {
             const val = parseInt(input.value) || 0;
             if (val > 0) {
@@ -171,6 +177,7 @@
                 if(tipo === 'primo') nPrimi += val;
                 if(tipo === 'secondo') nSecondi += val;
                 if(tipo === 'contorno') nContorni += val;
+                if(tipo === 'insalatona') nInsalatone += val; // Conta Insalatone
             }
         });
         document.querySelectorAll('.pizza-qty').forEach(input => {
@@ -178,12 +185,19 @@
             if(val > 0) nPizze += val;
         });
 
+        // Logica Offerta (solo Primi, Secondi, Contorni)
         let nMenuCompleti = Math.min(nPrimi, nSecondi, nContorni);
         let restoP = nPrimi - nMenuCompleti;
         let restoS = nSecondi - nMenuCompleti;
         let restoC = nContorni - nMenuCompleti;
 
-        let totale = (nMenuCompleti * 7.00) + ((restoP + restoS) * 5.00) + (restoC * 3.00) + (nPizze * 7.00);
+        // Calcolo finale con Insalatone a 6€
+        let totale = (nMenuCompleti * 7.00) + 
+                     ((restoP + restoS) * 5.00) + 
+                     (restoC * 3.00) + 
+                     (nPizze * 7.00) +
+                     (nInsalatone * 6.00);
+
         totaleOrdineCalcolato = totale;
         document.getElementById('display-totale').innerText = "€ " + totale.toFixed(2).replace('.', ',');
     }
@@ -193,7 +207,7 @@
         const telefono = document.getElementById('telefono').value;
         const tipo = document.getElementById('tipo-ordine').value;
         const tavolo = document.getElementById('nome-tavolo').value;
-        const numPersone = document.getElementById('num-persone').value; // NUOVO CAMPO
+        const numPersone = document.getElementById('num-persone').value;
         const orarioScelto = document.getElementById('orario').value;
 
         if(!nome) { alert("Inserisci il tuo nome!"); return; }
@@ -231,7 +245,7 @@
             items: carrello,
             tipo: tipo,
             tavolo: tavoloFinale,
-            coperti: coperti, // INVIAMO IL NUMERO DI PERSONE
+            coperti: coperti,
             orario: orarioScelto,
             totale: totaleOrdineCalcolato,
             timestamp: Date.now()
@@ -240,7 +254,7 @@
         if(confirm(`Il totale è € ${totaleOrdineCalcolato.toFixed(2)}. Confermi l'ordine?`)) {
             db.ref('ordini').push(ordine)
                 .then(() => {
-                    alert("✅ Ordine Inviato! Grazie.");
+                    alert("✅ Ordine Inviato!");
                     location.reload();
                 })
                 .catch(err => alert("Errore invio: " + err.message));
@@ -249,7 +263,6 @@
 </script>
 </body>
 </html>
-
 
 
 
