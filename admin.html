@@ -64,7 +64,6 @@
 
         .badge-new { position: absolute; top: 10px; right: 120px; background: #e74c3c; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.7em; font-weight: bold; }
         
-        /* TASTI SULLA CARD */
         .card-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; }
         .action-icon { width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); margin:0; padding:0; }
         .btn-delete-single { background: #fee; color: #c0392b; }
@@ -85,14 +84,12 @@
         .led-on { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
         .led-off { background: #e74c3c; }
 
-        /* OVERLAYS */
         #login-overlay, #bill-overlay, #edit-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; justify-content: center; align-items: center; }
         #login-box, #bill-box, #edit-box { background: white; padding: 40px; border-radius: 15px; width: 90%; max-width: 500px; position: relative; color: #2d3436; max-height: 90vh; overflow-y: auto; }
         
         .bill-item { display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding: 8px 0; font-size: 0.95em; }
         .bill-total-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2em; margin-top: 15px; border-top: 2px solid #2d3436; padding-top: 10px; color: var(--accent); }
 
-        /* EDIT ROWS */
         .edit-item-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
         .edit-item-qty { width: 60px; text-align: center; }
         .edit-item-select { flex: 1; }
@@ -131,10 +128,8 @@
         <button onclick="document.getElementById('edit-overlay').style.display='none'" style="position:absolute; top:10px; right:10px; width:30px; padding:5px; background:none; font-size:1.5em; color:#333; border:none; margin:0; cursor:pointer;">&times;</button>
         <h3>✏️ Modifica Ordine</h3>
         <div id="edit-items-container" style="margin-top:20px;"></div>
-        
         <label style="font-weight:bold; margin-top:20px; display:block;">Prezzo Totale (€):</label>
         <input type="number" id="edit-total-price" step="0.50" style="font-size:1.2em; color:#27ae60; font-weight:bold;">
-        
         <button class="btn-success" onclick="salvaModifica()">💾 SALVA MODIFICHE</button>
     </div>
 </div>
@@ -180,14 +175,14 @@
     <h3>🍽️ Tavoli</h3> <div id="lista-tavoli"></div>
 
     <div class="global-actions">
-        <button class="btn-purple" onclick="fineGiornata()">🌙 FINE GIORNATA (Svuota Menu)</button>
+        <button class="btn-purple" onclick="fineGiornata()">🌙 FINE GIORNATA</button>
         <button class="btn-success" onclick="scaricaExcel()">📥 EXCEL</button>
         <button class="btn-danger" onclick="cancellaTutto()">🗑️ RESET ORDINI</button>
     </div>
 </div>
 
 <script>
-    const firebaseConfig = {
+   const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
         authDomain: "melastregatauni.firebaseapp.com",
         // Nota: questo URL è importante perché il tuo database è in Europa
@@ -208,7 +203,6 @@
     let isFirstLoad = true;
     let currentEditKey = null;
 
-    // --- NUOVO AUDIO (CAMPANELLA) ---
     let audioCtx = null;
     let audioEnabled = false;
     function abilitaAudio() {
@@ -224,22 +218,14 @@
     }
     function playSound() {
         if (!audioEnabled || !audioCtx) return;
-        const t = audioCtx.currentTime;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        
-        // Effetto "Ding" elegante (La alto + decadimento morbido)
-        osc.type = 'sine'; 
-        osc.frequency.setValueAtTime(880, t); 
-        osc.frequency.exponentialRampToValueAtTime(800, t + 0.5); // Leggero pitch drop
-        
-        gain.gain.setValueAtTime(0, t);
-        gain.gain.linearRampToValueAtTime(0.2, t + 0.05);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5); // Lunga coda
-
-        osc.start(t);
-        osc.stop(t + 1.5);
+        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        o.connect(g); g.connect(audioCtx.destination);
+        o.type = 'sine'; o.frequency.setValueAtTime(880, audioCtx.currentTime); 
+        o.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.5);
+        g.gain.setValueAtTime(0, audioCtx.currentTime);
+        g.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.05);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+        o.start(audioCtx.currentTime); o.stop(audioCtx.currentTime + 1.5);
     }
 
     db.ref(".info/connected").on("value", (snap) => {
@@ -278,12 +264,11 @@
     function renderOrdini(data) {
         const divAsporto = document.getElementById('lista-asporto'); const divTavoli = document.getElementById('lista-tavoli');
         divAsporto.innerHTML = ""; divTavoli.innerHTML = ""; 
-        globalOrdersByTable = {}; 
-        globalRawData = data || {};
+        globalOrdersByTable = {}; globalRawData = data || {};
 
         if(!data) { 
-            divAsporto.innerHTML = "<div style='text-align:center; color:rgba(255,255,255,0.6); font-style:italic;'>Nessun ordine.</div>"; 
-            divTavoli.innerHTML = "<div style='text-align:center; color:rgba(255,255,255,0.6); font-style:italic;'>Nessun ordine.</div>"; 
+            divAsporto.innerHTML = "<div style='text-align:center; color:rgba(255,255,255,0.6);'>Nessun ordine.</div>"; 
+            divTavoli.innerHTML = "<div style='text-align:center; color:rgba(255,255,255,0.6);'>Nessun ordine.</div>"; 
             document.getElementById('total-revenue').innerText = "€ 0,00"; lastOrderCount = 0; return; 
         }
 
@@ -306,7 +291,10 @@
                 if(!gruppiTavoli[nomeTav]) { gruppiTavoli[nomeTav] = []; }
             }
 
-            let piattiHTML = ""; if(ordine.items) { piattiHTML = ordine.items.map(i => `<div style="margin-bottom:2px;">• <strong>${i.qty}</strong> ${i.nome}</div>`).join(""); }
+            let piattiHTML = ""; 
+            if(ordine.items) { 
+                piattiHTML = ordine.items.map(i => `<div style="margin-bottom:2px;">• <strong>${i.qty}</strong> ${i.nome}</div>`).join(""); 
+            }
             const telefonoHTML = ordine.telefono ? `<div style="font-size:0.85em; margin-top:5px; color:#3498db;">📞 ${ordine.telefono}</div>` : "";
             const totaleHTML = ordine.totale ? `<div style="margin-top:10px; font-weight:bold; color:#27ae60; border-top:1px dashed #eee; padding-top:5px;">€ ${parseFloat(ordine.totale).toFixed(2)}</div>` : "";
             const copertiOrdine = (ordine.tipo === 'tavolo' && ordine.coperti) ? `<span style="font-size:0.8em; background:#eee; padding:2px 6px; border-radius:4px; margin-left:5px; color:#333;">👤 +${ordine.coperti}</span>` : "";
@@ -354,7 +342,8 @@
     // --- MODIFICA ORDINE ---
     function getMenuDropdownHTML(selectedName) {
         let allItems = [];
-        ['menu-primi', 'menu-secondi', 'menu-contorni', 'menu-insalatone', 'menu-pizze'].forEach(id => {
+        // Rimosso menu-contorni
+        ['menu-primi', 'menu-secondi', 'menu-insalatone', 'menu-pizze'].forEach(id => {
             const txt = document.getElementById(id).value;
             txt.split('\n').forEach(line => {
                 const clean = line.replace('[X]', '').trim();
@@ -363,12 +352,15 @@
         });
         allItems.sort();
         let html = ''; let found = false;
-        const cleanSelected = selectedName.replace("PIZZA: ", "").trim();
+        // Pulizia nome per il match (rimuove "PIZZA: " e parentesi del contorno)
+        const cleanSelected = selectedName.replace("PIZZA: ", "").split(" (con")[0].trim();
+        
         allItems.forEach(dish => {
             const isSelected = dish === cleanSelected;
             if(isSelected) found = true;
             html += `<option value="${dish}" ${isSelected ? 'selected' : ''}>${dish}</option>`;
         });
+        // Se non trovato (magari ha un contorno custom), mettilo come option
         if(!found && cleanSelected) html = `<option value="${cleanSelected}" selected>${cleanSelected} (Attuale)</option>` + html;
         return `<select class="edit-item-select" onchange="ricalcolaTotaleModifica()">${html}</select>`;
     }
@@ -417,25 +409,30 @@
     function getPriceForItem(name) {
         const mP = document.getElementById('menu-primi').value;
         const mS = document.getElementById('menu-secondi').value;
-        const mC = document.getElementById('menu-contorni').value;
         const mI = document.getElementById('menu-insalatone').value;
         const mPiz = document.getElementById('menu-pizze').value;
-        let price = 0; const cN = name.replace("PIZZA: ", "").trim();
+        
+        let price = 0; 
+        const cN = name.replace("PIZZA: ", "").split(" (con")[0].trim();
+        
         if (name.startsWith("PIZZA:")) price = parseFloat(document.getElementById('price-pizze').value)||0;
         else if (mP.includes(cN)) price = parseFloat(document.getElementById('price-primi').value)||0;
         else if (mS.includes(cN)) price = parseFloat(document.getElementById('price-secondi').value)||0;
-        else if (mC.includes(cN)) price = parseFloat(document.getElementById('price-contorni').value)||0;
         else if (mI.includes(cN)) price = parseFloat(document.getElementById('price-insalatone').value)||0;
         else if (mPiz.includes(cN)) price = parseFloat(document.getElementById('price-pizze').value)||0;
+        
         return price;
     }
 
     let currentTableData = null;
     function mostraContoTavolo(tavolo) {
         const ordiniTavolo = globalOrdersByTable[tavolo]; if (!ordiniTavolo) return;
-        let riepilogoItems = {}; let totaleRealeTavolo = 0;
+        let riepilogoItems = {}; let totaleRealeTavolo = 0; let totalePersone = 0; // Totale persone
+        
         ordiniTavolo.forEach(ord => {
             totaleRealeTavolo += parseFloat(ord.totale || 0);
+            totalePersone += parseInt(ord.coperti || 0); // Somma persone
+            
             if (ord.items) {
                 ord.items.forEach(item => {
                     const nome = item.nome; const qty = parseInt(item.qty);
@@ -444,17 +441,28 @@
                 });
             }
         });
-        const container = document.getElementById('bill-content'); container.innerHTML = "";
+        
+        const container = document.getElementById('bill-content'); 
+        // Aggiungi riga totale persone in alto
+        container.innerHTML = `<div style="text-align:center; font-weight:bold; color:#555; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">👥 Totale Persone: ${totalePersone}</div>`;
+        
         for (const [nome, data] of Object.entries(riepilogoItems)) {
             const lineTotal = data.qty * data.price;
             const priceStr = data.price > 0 ? `(€ ${data.price.toFixed(2)} cad.)` : "";
             container.innerHTML += `<div class="bill-item"><span><strong>${data.qty}x</strong> ${nome.replace("PIZZA: ","")} ${priceStr}</span><span>€ ${lineTotal.toFixed(2)}</span></div>`;
         }
-        let htmlDiviso = `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #eee; font-size:0.9em; color:#666; display:flex; align-items:center; gap:10px;"><span>➗ Diviso</span><input type="number" id="split-num" value="1" min="1" style="width:50px; padding:5px; text-align:center;" oninput="calcolaDiviso(${totaleRealeTavolo})">persone = <strong id="split-res" style="color:#2c3e50;">€ ${totaleRealeTavolo.toFixed(2)}</strong> a testa</div>`;
+        
+        // Calcolatrice con default al numero di persone
+        let htmlDiviso = `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #eee; font-size:0.9em; color:#666; display:flex; align-items:center; gap:10px;"><span>➗ Diviso</span><input type="number" id="split-num" value="${totalePersone > 0 ? totalePersone : 1}" min="1" style="width:50px; padding:5px; text-align:center;" oninput="calcolaDiviso(${totaleRealeTavolo})">persone = <strong id="split-res" style="color:#2c3e50;">€ ${totaleRealeTavolo.toFixed(2)}</strong> a testa</div>`;
+        
         document.getElementById('bill-title').innerText = "Conto Tavolo: " + tavolo;
         document.getElementById('bill-total-value').innerText = "€ " + totaleRealeTavolo.toFixed(2);
         container.innerHTML += htmlDiviso;
-        currentTableData = { tavolo, items: riepilogoItems, totale: totaleRealeTavolo };
+        
+        // Esegui subito calcolo iniziale
+        setTimeout(() => calcolaDiviso(totaleRealeTavolo), 100);
+
+        currentTableData = { tavolo, items: riepilogoItems, totale: totaleRealeTavolo, persone: totalePersone };
         document.getElementById('bill-overlay').style.display = 'flex';
     }
 
@@ -466,7 +474,7 @@
 
     function stampaConto() {
         if(!currentTableData) return;
-        let c = `<div style="font-family:monospace;width:300px;padding:10px;"><h3 style="text-align:center;margin:0">Mela Stregata</h3><p style="text-align:center;">CONTO TAVOLO: ${currentTableData.tavolo}</p><hr><ul style="padding-left:0;list-style:none;">`;
+        let c = `<div style="font-family:monospace;width:300px;padding:10px;"><h3 style="text-align:center;margin:0">Mela Stregata</h3><p style="text-align:center;">CONTO TAVOLO: ${currentTableData.tavolo}</p><p style="text-align:center;">Persone: ${currentTableData.persone}</p><hr><ul style="padding-left:0;list-style:none;">`;
         for (const [nome, data] of Object.entries(currentTableData.items)) {
             const lineTotal = data.qty * data.price;
             c += `<li style="display:flex;justify-content:space-between;"><span>${data.qty}x ${nome.replace("PIZZA: ","")}</span> <span>€ ${lineTotal.toFixed(2)}</span></li>`;
@@ -476,7 +484,7 @@
     }
 
     function fineGiornata() {
-        if(!confirm("⚠️ ATTENZIONE: Cancello Primi e Secondi per domani.\n(Contorni, Insalatone e Pizze NON verranno toccati).\n\nProcedere?")) return;
+        if(!confirm("⚠️ ATTENZIONE: Cancello Primi e Secondi per domani.\n\nProcedere?")) return;
         db.ref('menu').update({ primi: "", secondi: "", pizze_esaurite: true, blocca_ordini: false });
         alert("✅ Giornata chiusa! Primi e Secondi svuotati."); location.reload();
     }
