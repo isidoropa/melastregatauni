@@ -10,8 +10,8 @@
     
     <style>
         :root {
-            --brand-green: #324a3e; /* IL COLORE DEL TUO LOGO */
-            --brand-cream: #f0eee6; /* IL COLORE DEL TESTO LOGO */
+            --brand-green: #324a3e;
+            --brand-cream: #f0eee6;
             --accent: #e67e22;
             --text-dark: #2d3436;
             --bg-card: #ffffff;
@@ -28,91 +28,51 @@
             padding-bottom: 120px; 
         }
 
-        /* --- NUOVO HEADER STILE LOGO --- */
+        /* HEADER LOGO */
         .brand-header {
             background-color: var(--brand-green);
             color: var(--brand-cream);
-            padding: 30px 20px 50px 20px; /* Padding sotto extra per sovrapposizione card */
+            padding: 30px 20px 50px 20px;
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
         }
-
-        .brand-sup {
-            font-family: 'Poppins', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            font-size: 0.7em;
-            margin-bottom: 10px;
-            font-weight: 600;
-            opacity: 0.9;
-        }
-
-        .logo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 5px;
-        }
-
-        /* Il quadrato con la mela (Disegnato in CSS/SVG) */
-        .logo-icon-box {
-            width: 50px;
-            height: 50px;
-            border: 2px solid var(--brand-cream);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .logo-icon-svg {
-            width: 30px;
-            height: 30px;
-            fill: none;
-            stroke: var(--brand-cream);
-            stroke-width: 2;
-        }
-
-        .brand-main {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.2em;
-            line-height: 0.9;
-            text-align: left;
-        }
+        .brand-sup { font-family: 'Poppins', sans-serif; text-transform: uppercase; letter-spacing: 4px; font-size: 0.7em; margin-bottom: 10px; font-weight: 600; opacity: 0.9; }
+        .logo-container { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 5px; }
+        .logo-icon-box { width: 50px; height: 50px; border: 2px solid var(--brand-cream); display: flex; align-items: center; justify-content: center; }
+        .logo-icon-svg { width: 30px; height: 30px; fill: none; stroke: var(--brand-cream); stroke-width: 2; }
+        .brand-main { font-family: 'Playfair Display', serif; font-size: 2.2em; line-height: 0.9; text-align: left; }
         .brand-main span { display: block; }
-        .brand-main .thin { font-weight: 400; font-style: italic; font-size: 0.8em;} /* Per variare lo stile se vuoi */
-
-        .brand-sub {
-            font-family: 'Poppins', sans-serif;
-            font-size: 0.55em;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-top: 8px;
-            border-top: 1px solid rgba(240, 238, 230, 0.3);
-            padding-top: 8px;
-            width: 100%;
-            max-width: 250px;
-        }
-
-        /* --------------------------- */
+        .brand-sub { font-family: 'Poppins', sans-serif; font-size: 0.55em; text-transform: uppercase; letter-spacing: 2px; margin-top: 8px; border-top: 1px solid rgba(240, 238, 230, 0.3); padding-top: 8px; width: 100%; max-width: 250px; }
         
         .container { max-width: 600px; margin: 0 auto; padding: 0 20px; position: relative; top: -30px; }
-
         .card { background: var(--bg-card); border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); margin-bottom: 20px; }
 
         h2 { margin: 0 0 5px 0; color: var(--brand-green); font-size: 1.6em; }
         h3 { font-size: 1.2em; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; color: var(--text-dark); }
         
         .price-row { display: flex; justify-content: space-between; font-size: 0.9em; margin-bottom: 6px; color: #555; }
-        .promo-badge { background: linear-gradient(45deg, #27ae60, #2ecc71); color: white; padding: 8px; border-radius: 10px; text-align: center; font-weight: 600; font-size: 0.9em; margin-top: 10px; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3); }
-
-        .piatto-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+        
+        /* PIATTO ROW */
+        .piatto-row { 
+            display: flex; flex-direction: column; /* Cambiato per ospitare l'input sotto */
+            padding: 12px 0; border-bottom: 1px solid #f0f0f0; 
+        }
+        .piatto-row-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .piatto-row:last-child { border-bottom: none; }
         .piatto-nome { flex: 1; font-weight: 500; font-size: 0.95em; line-height: 1.3; padding-right: 10px; }
         
+        /* INPUT CONTORNO */
+        .side-dish-input {
+            width: 100%; margin-top: 8px; padding: 8px;
+            border: 1px solid #eee; border-radius: 8px;
+            font-size: 0.85em; background: #fafafa;
+            color: #555;
+        }
+        .side-dish-input::placeholder { color: #aaa; font-style: italic; }
+
         .stepper { display: flex; align-items: center; background: var(--gray-light); border-radius: 12px; padding: 2px; }
         .stepper-btn { width: 36px; height: 36px; border: none; background: white; border-radius: 10px; font-weight: bold; font-size: 1.2em; color: var(--brand-green); cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; }
         .stepper-btn:active { transform: scale(0.9); background: #eee; }
@@ -168,59 +128,33 @@
         
         <div class="card">
             <div style="text-align:center;">
-                <p style="color:#888; margin:0 0 10px 0; font-size:0.9em;">Locale convenzionato Adisurc</p>
+                <p style="color:#888; margin:0 0 10px 0; font-size:0.9em;">Mensa Universitaria</p>
                 <a href="tel:123456789" style="color:var(--accent); text-decoration:none; font-weight:600; display:inline-block; border:1px solid var(--accent); padding:5px 15px; border-radius:20px; font-size:0.9em;">📞 Chiama Info</a>
             </div>
-            
             <hr style="border:0; border-top:1px dashed #eee; margin:15px 0;">
-            
-            <div class="price-row"><span>🍝 Primi / 🍖 Secondi</span><strong id="p-primi">€ 5,00</strong></div>
-            <div class="price-row"><span>🥗 Contorni</span><strong id="p-contorni">€ 3,00</strong></div>
+            <div class="price-row"><span>🍝 Primi</span><strong id="p-primi">€ 5,00</strong></div>
+            <div class="price-row"><span>🍖 Secondi (con contorno)</span><strong id="p-secondi">€ 5,00</strong></div>
             <div class="price-row"><span>🥬 Insalatone</span><strong id="p-insalatone">€ 6,00</strong></div>
             <div class="price-row"><span>🍕 Menu Pizza</span><strong id="p-pizza">€ 7,00</strong></div>
-            
-            <div class="promo-badge">
-                🔥 COMBO: 1P + 1S + 1C = <span id="p-combo">€ 7,00</span>
-            </div>
         </div>
 
         <div id="loading" style="text-align:center; color:white; padding:20px;">Caricamento menu...</div>
 
         <div id="menu-content" class="hidden">
-            
-            <div class="card">
-                <h3 id="t-primi">🍝 Primi</h3>
-                <div id="list-primi"></div>
-            </div>
-
-            <div class="card">
-                <h3 id="t-secondi">🍖 Secondi</h3>
-                <div id="list-secondi"></div>
-            </div>
-
-            <div class="card">
-                <h3 id="t-contorni">🥗 Contorni</h3>
-                <div id="list-contorni"></div>
-            </div>
-
-            <div class="card" style="border-left: 5px solid #27ae60;">
-                <h3 id="t-insalatone" style="color:#27ae60;">🥬 Insalatone</h3>
-                <div id="list-insalatone"></div>
-            </div>
+            <div class="card"><h3 id="t-primi">🍝 Primi</h3><div id="list-primi"></div></div>
+            <div class="card"><h3 id="t-secondi">🍖 Secondi</h3><div id="list-secondi"></div></div>
+            <div class="card" style="border-left: 5px solid #27ae60;"><h3 id="t-insalatone" style="color:#27ae60;">🥬 Insalatone</h3><div id="list-insalatone"></div></div>
 
             <div class="card" style="border-left: 5px solid var(--accent);">
                 <h3 id="t-pizze" style="color:var(--accent);">🍕 Pizze</h3>
                 <p id="desc-pizze" style="font-size:0.85em; color:#777; margin-bottom:15px;"></p>
-                
                 <div id="pizza-area">
-                    <label style="margin-top:0;">Aggiungi Pizza:</label>
                     <div class="pizza-input-group">
                         <input type="text" id="pizza-name" placeholder="Es. Margherita">
                         <button class="btn-add-pizza" onclick="addPizza()">+</button>
                     </div>
                 </div>
                 <div id="pizza-closed" class="hidden" style="color:#d63031; font-weight:bold; text-align:center; padding:10px;">🚫 Pizze Esaurite</div>
-                
                 <div id="pizza-cart"></div>
             </div>
 
@@ -228,23 +162,19 @@
                 <h3>👤 I Tuoi Dati</h3>
                 <label>Nome e Cognome</label>
                 <input type="text" id="nome" placeholder="Mario Rossi" autocomplete="name">
-                
                 <label>Telefono</label>
                 <input type="tel" id="telefono" placeholder="333 1234567" pattern="[0-9]*" inputmode="numeric" autocomplete="tel">
-                
                 <label>Dove mangi?</label>
                 <select id="tipo" onchange="checkTavolo()">
                     <option value="asporto">🥡 Asporto (Porto via)</option>
                     <option value="tavolo">🍽️ Al Tavolo (Mangio qui)</option>
                 </select>
-
                 <div id="box-tavolo" class="hidden" style="background:#f0f8ff; padding:15px; border-radius:12px; margin-top:10px;">
                     <label style="color:#2980b9; margin-top:0;">Nome del Tavolo</label>
                     <input type="text" id="tavolo-nome" placeholder="ES. RUSSO">
                     <label style="color:#2980b9;">Numero Persone</label>
                     <input type="tel" id="tavolo-persone" placeholder="4" inputmode="numeric" style="width:100px;">
                 </div>
-
                 <label>Orario Ritiro/Pranzo</label>
                 <select id="orario">
                     <option value="" disabled selected>-- Seleziona --</option>
@@ -259,9 +189,8 @@
                     <option value="14:00">14:00</option>
                     <option value="14:15">14:15</option>
                 </select>
-
-                <label>Note (Allergie, extra...)</label>
-                <textarea id="note" rows="2" placeholder="Scrivi qui..."></textarea>
+                <label>Note Generali</label>
+                <textarea id="note" rows="2" placeholder="Es. Allergie..."></textarea>
             </div>
         </div>
     </div>
@@ -288,7 +217,7 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let P = { primi:5, secondi:5, contorni:3, insalatone:6, pizze:7, combo:7 };
+    let P = { primi:5, secondi:5, insalatone:6, pizze:7 };
     let cartPizze = [];
     let isPanic = false;
 
@@ -311,15 +240,12 @@
 
         P.primi = m.prezzo_primi || 5; 
         P.secondi = m.prezzo_secondi || 5;
-        P.contorni = m.prezzo_contorni || 3;
         P.insalatone = m.prezzo_insalatone || 6;
         P.pizze = m.prezzo_pizze || 7;
-        P.combo = m.prezzo_combo || 7;
 
         updatePricesUI();
         renderList('list-primi', m.primi, 'primo');
-        renderList('list-secondi', m.secondi, 'secondo');
-        renderList('list-contorni', m.contorni, 'contorno');
+        renderList('list-secondi', m.secondi, 'secondo'); // Qui c'è il cambio per i contorni
         renderList('list-insalatone', m.insalatone, 'insalatona');
         
         document.getElementById('desc-pizze').innerText = m.pizze || "Chiedi disponibilità";
@@ -342,14 +268,12 @@
 
     function updatePricesUI() {
         document.getElementById('p-primi').innerText = "€ "+P.primi.toFixed(2);
-        document.getElementById('p-contorni').innerText = "€ "+P.contorni.toFixed(2);
+        document.getElementById('p-secondi').innerText = "€ "+P.secondi.toFixed(2);
         document.getElementById('p-insalatone').innerText = "€ "+P.insalatone.toFixed(2);
         document.getElementById('p-pizza').innerText = "€ "+P.pizze.toFixed(2);
-        document.getElementById('p-combo').innerText = "€ "+P.combo.toFixed(2);
         
         document.getElementById('t-primi').innerText = `🍝 Primi (€ ${P.primi})`;
         document.getElementById('t-secondi').innerText = `🍖 Secondi (€ ${P.secondi})`;
-        document.getElementById('t-contorni').innerText = `🥗 Contorni (€ ${P.contorni})`;
         document.getElementById('t-insalatone').innerText = `🥬 Insalatone (€ ${P.insalatone})`;
         document.getElementById('t-pizze').innerText = `🍕 Pizze (€ ${P.pizze})`;
     }
@@ -366,14 +290,23 @@
             const rowClass = isSold ? "piatto-row sold-out" : "piatto-row";
             const disable = isSold ? "disabled" : "";
 
+            // Se è un secondo, aggiungiamo l'input per il contorno
+            let extraInput = "";
+            if (type === 'secondo') {
+                extraInput = `<input type="text" class="side-dish-input" placeholder="Con... (es. Patatine)">`;
+            }
+
             const html = `
             <div class="${rowClass}">
-                <div class="piatto-nome">${name}</div>
-                <div class="stepper">
-                    <button class="stepper-btn" onclick="step(this, -1)" ${disable}>-</button>
-                    <input type="text" class="stepper-val" value="0" readonly data-type="${type}" data-name="${name}">
-                    <button class="stepper-btn" onclick="step(this, 1)" ${disable}>+</button>
+                <div class="piatto-row-top">
+                    <div class="piatto-nome">${name}</div>
+                    <div class="stepper">
+                        <button class="stepper-btn" onclick="step(this, -1)" ${disable}>-</button>
+                        <input type="text" class="stepper-val" value="0" readonly data-type="${type}" data-name="${name}">
+                        <button class="stepper-btn" onclick="step(this, 1)" ${disable}>+</button>
+                    </div>
                 </div>
+                ${extraInput}
             </div>`;
             el.insertAdjacentHTML('beforeend', html);
         });
@@ -418,26 +351,19 @@
 
     let totalValue = 0;
     function calc() {
-        let cP=0, cS=0, cC=0, cI=0, cPiz=0;
+        let cP=0, cS=0, cI=0, cPiz=0;
         document.querySelectorAll('.stepper-val').forEach(el => {
             const q = parseInt(el.value) || 0;
             const t = el.dataset.type;
             if(t==='primo') cP += q;
             if(t==='secondo') cS += q;
-            if(t==='contorno') cC += q;
             if(t==='insalatona') cI += q;
         });
         cPiz = cartPizze.length;
 
-        let nCombo = Math.min(cP, cS, cC);
-        let remP = cP - nCombo;
-        let remS = cS - nCombo;
-        let remC = cC - nCombo;
-
-        totalValue = (nCombo * P.combo) + 
-                     (remP * P.primi) + 
-                     (remS * P.secondi) + 
-                     (remC * P.contorni) + 
+        // Calcolo Lineare (Senza Combo)
+        totalValue = (cP * P.primi) + 
+                     (cS * P.secondi) + 
                      (cI * P.insalatone) + 
                      (cPiz * P.pizze);
 
@@ -480,7 +406,19 @@
         let items = [];
         document.querySelectorAll('.stepper-val').forEach(el => {
             const q = parseInt(el.value);
-            if(q > 0) items.push({ nome: el.dataset.name, qty: q });
+            if(q > 0) {
+                let finalName = el.dataset.name;
+                // Se è un secondo, cerca la nota "Con..."
+                if(el.dataset.type === 'secondo') {
+                    // Trova l'input nella stessa riga (div genitore)
+                    const row = el.closest('.piatto-row');
+                    const sideInput = row.querySelector('.side-dish-input');
+                    if (sideInput && sideInput.value.trim() !== "") {
+                        finalName += " (con " + sideInput.value.trim() + ")";
+                    }
+                }
+                items.push({ nome: finalName, qty: q });
+            }
         });
         cartPizze.forEach(p => items.push({ nome: p.name, qty: 1 }));
 
@@ -516,4 +454,3 @@
 </script>
 </body>
 </html>
-
