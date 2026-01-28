@@ -20,25 +20,9 @@
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        body { 
-            font-family: 'Poppins', sans-serif; 
-            background-color: var(--brand-green); 
-            margin: 0; padding: 0; 
-            color: var(--text-dark); 
-            padding-bottom: 120px; 
-        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--brand-green); margin: 0; padding: 0; color: var(--text-dark); padding-bottom: 120px; }
 
-        /* HEADER LOGO */
-        .brand-header {
-            background-color: var(--brand-green);
-            color: var(--brand-cream);
-            padding: 30px 20px 50px 20px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
+        .brand-header { background-color: var(--brand-green); color: var(--brand-cream); padding: 30px 20px 50px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .brand-sup { font-family: 'Poppins', sans-serif; text-transform: uppercase; letter-spacing: 4px; font-size: 0.7em; margin-bottom: 10px; font-weight: 600; opacity: 0.9; }
         .logo-container { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 5px; }
         .logo-icon-box { width: 50px; height: 50px; border: 2px solid var(--brand-cream); display: flex; align-items: center; justify-content: center; }
@@ -55,23 +39,22 @@
         
         .price-row { display: flex; justify-content: space-between; font-size: 0.9em; margin-bottom: 6px; color: #555; }
         
-        /* PIATTO ROW */
-        .piatto-row { 
-            display: flex; flex-direction: column; /* Cambiato per ospitare l'input sotto */
-            padding: 12px 0; border-bottom: 1px solid #f0f0f0; 
-        }
+        .piatto-row { display: flex; flex-direction: column; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
         .piatto-row-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .piatto-row:last-child { border-bottom: none; }
         .piatto-nome { flex: 1; font-weight: 500; font-size: 0.95em; line-height: 1.3; padding-right: 10px; }
         
-        /* INPUT CONTORNO */
-        .side-dish-input {
+        /* STYLE SELECT CONTORNI */
+        .side-dish-select {
             width: 100%; margin-top: 8px; padding: 8px;
-            border: 1px solid #eee; border-radius: 8px;
-            font-size: 0.85em; background: #fafafa;
-            color: #555;
+            border: 1px solid #ddd; border-radius: 8px;
+            font-size: 0.85em; background: #fafafa; color: #555;
+            -webkit-appearance: none; appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right .7em top 50%;
+            background-size: .65em auto;
         }
-        .side-dish-input::placeholder { color: #aaa; font-style: italic; }
 
         .stepper { display: flex; align-items: center; background: var(--gray-light); border-radius: 12px; padding: 2px; }
         .stepper-btn { width: 36px; height: 36px; border: none; background: white; border-radius: 10px; font-weight: bold; font-size: 1.2em; color: var(--brand-green); cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; }
@@ -220,6 +203,7 @@
     let P = { primi:5, secondi:5, insalatone:6, pizze:7 };
     let cartPizze = [];
     let isPanic = false;
+    let availableSideDishes = [];
 
     window.onbeforeunload = () => {
         let hasFood = cartPizze.length > 0;
@@ -243,9 +227,12 @@
         P.insalatone = m.prezzo_insalatone || 6;
         P.pizze = m.prezzo_pizze || 7;
 
+        // Recupera lista contorni da stringa
+        availableSideDishes = m.lista_contorni ? m.lista_contorni.split('\n').filter(c => c.trim() !== "") : [];
+
         updatePricesUI();
         renderList('list-primi', m.primi, 'primo');
-        renderList('list-secondi', m.secondi, 'secondo'); // Qui c'è il cambio per i contorni
+        renderList('list-secondi', m.secondi, 'secondo'); 
         renderList('list-insalatone', m.insalatone, 'insalatona');
         
         document.getElementById('desc-pizze').innerText = m.pizze || "Chiedi disponibilità";
@@ -290,10 +277,13 @@
             const rowClass = isSold ? "piatto-row sold-out" : "piatto-row";
             const disable = isSold ? "disabled" : "";
 
-            // Se è un secondo, aggiungiamo l'input per il contorno
             let extraInput = "";
             if (type === 'secondo') {
-                extraInput = `<input type="text" class="side-dish-input" placeholder="Con... (es. Patatine)">`;
+                let options = '<option value="">-- Scegli Contorno --</option>';
+                availableSideDishes.forEach(c => {
+                    options += `<option value="${c.trim()}">${c.trim()}</option>`;
+                });
+                extraInput = `<select class="side-dish-select">${options}</select>`;
             }
 
             const html = `
@@ -361,7 +351,6 @@
         });
         cPiz = cartPizze.length;
 
-        // Calcolo Lineare (Senza Combo)
         totalValue = (cP * P.primi) + 
                      (cS * P.secondi) + 
                      (cI * P.insalatone) + 
@@ -404,22 +393,26 @@
         }
 
         let items = [];
+        let missingSide = false;
+
         document.querySelectorAll('.stepper-val').forEach(el => {
             const q = parseInt(el.value);
             if(q > 0) {
                 let finalName = el.dataset.name;
-                // Se è un secondo, cerca la nota "Con..."
                 if(el.dataset.type === 'secondo') {
-                    // Trova l'input nella stessa riga (div genitore)
                     const row = el.closest('.piatto-row');
-                    const sideInput = row.querySelector('.side-dish-input');
-                    if (sideInput && sideInput.value.trim() !== "") {
-                        finalName += " (con " + sideInput.value.trim() + ")";
+                    const select = row.querySelector('.side-dish-select');
+                    if (select) {
+                        if(select.value === "") missingSide = true;
+                        else finalName += " (con " + select.value + ")";
                     }
                 }
                 items.push({ nome: finalName, qty: q });
             }
         });
+        
+        if (missingSide) return alert("⚠️ Per favore, scegli un contorno per tutti i secondi piatti ordinati.");
+
         cartPizze.forEach(p => items.push({ nome: p.name, qty: 1 }));
 
         if(items.length === 0) return alert("Carrello vuoto!");
