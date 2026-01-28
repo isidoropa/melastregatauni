@@ -152,7 +152,7 @@
         <strong id="total-revenue">€ 0,00</strong>
     </div>
 
-    <button id="btn-audio" onclick="abilitaAudio()" style="background:#3498db; color:white; margin-bottom:20px;">🔊 ABILITA SUONI NOTIFICA</button>
+    <button id="btn-audio" onclick="abilitaAudio()" style="background:#3498db; color:white; margin-bottom:20px;">🔔 CLICCA PER ATTIVARE SUONO CAMPANELLA</button>
     
     <div class="admin-panel">
         <h2>Gestione Menu & Prezzi</h2>
@@ -202,7 +202,7 @@
         storageBucket: "melastregatauni.firebasestorage.app",
         messagingSenderId: "438544443213",
         appId: "1:438544443213:web:f30f121f0642b8e8a9b904"
-    };
+    };;
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -214,6 +214,7 @@
     let isFirstLoad = true;
     let currentEditKey = null;
 
+    // --- NUOVO AUDIO CAMPANELLA (DLIN-DLON) ---
     let audioCtx = null;
     let audioEnabled = false;
     function abilitaAudio() {
@@ -223,20 +224,34 @@
             audioCtx.resume().then(() => {
                 audioEnabled = true; playSound();
                 document.getElementById('btn-audio').style.display = 'none';
-                alert("🔊 Audio Attivato!");
+                alert("🔊 Campanella Attivata!");
             });
         } catch(e) { alert("Errore Audio: " + e.message); }
     }
+    
     function playSound() {
         if (!audioEnabled || !audioCtx) return;
-        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-        o.connect(g); g.connect(audioCtx.destination);
-        o.type = 'sine'; o.frequency.setValueAtTime(880, audioCtx.currentTime); 
-        o.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.5);
-        g.gain.setValueAtTime(0, audioCtx.currentTime);
-        g.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.05);
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
-        o.start(audioCtx.currentTime); o.stop(audioCtx.currentTime + 1.5);
+        const t = audioCtx.currentTime;
+
+        // Nota 1 (Alta)
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.connect(gain1); gain1.connect(audioCtx.destination);
+        osc1.type = 'sine'; osc1.frequency.setValueAtTime(880, t); // La5
+        gain1.gain.setValueAtTime(0, t);
+        gain1.gain.linearRampToValueAtTime(0.3, t + 0.05);
+        gain1.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+        osc1.start(t); osc1.stop(t + 1.5);
+
+        // Nota 2 (Bassa - Terza minore sotto, per fare DLIN-DLON)
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.connect(gain2); gain2.connect(audioCtx.destination);
+        osc2.type = 'sine'; osc2.frequency.setValueAtTime(739.99, t + 0.3); // Fa#5
+        gain2.gain.setValueAtTime(0, t + 0.3);
+        gain2.gain.linearRampToValueAtTime(0.3, t + 0.35);
+        gain2.gain.exponentialRampToValueAtTime(0.001, t + 2.0);
+        osc2.start(t + 0.3); osc2.stop(t + 2.0);
     }
 
     db.ref(".info/connected").on("value", (snap) => {
@@ -256,7 +271,6 @@
             if(m) {
                 document.getElementById('menu-primi').value = m.primi || "";
                 document.getElementById('menu-secondi').value = m.secondi || "";
-                // NUOVO CAMPO CONTORNI
                 document.getElementById('menu-lista-contorni').value = m.lista_contorni || "";
                 document.getElementById('menu-insalatone').value = m.insalatone || "";
                 document.getElementById('menu-pizze').value = m.pizze || "";
@@ -317,6 +331,9 @@
             if (ordine.completed) { cardClass += " card-completed"; } 
             else { if (diffMinutes < 5) { cardClass += " card-fresh"; badgeHTML = '<div class="badge-new">NEW</div>'; } else if (diffMinutes > 30) { cardClass += " card-old"; } }
 
+            // SUONO CAMPANELLA SE C'È UN NUOVO ORDINE
+            if (!isFirstLoad && currentOrderCount > lastOrderCount) { playSound(); }
+
             const htmlCard = `
                 <div class="${cardClass}" style="border-left-color: ${ordine.tipo === 'asporto' ? '#27ae60' : '#2980b9'};">
                     <div class="card-actions">
@@ -337,8 +354,9 @@
         });
 
         document.getElementById('total-revenue').innerText = "€ " + incassoTotale.toFixed(2);
-        if (!isFirstLoad && currentOrderCount > lastOrderCount) { playSound(); }
-        lastOrderCount = currentOrderCount; isFirstLoad = false;
+        
+        lastOrderCount = currentOrderCount; 
+        isFirstLoad = false;
 
         for (const [tavolo, cards] of Object.entries(gruppiTavoli)) {
             const totalePersone = contaPersonePerTavolo[tavolo] || 0;
@@ -353,7 +371,6 @@
     // --- MODIFICA ORDINE ---
     function getMenuDropdownHTML(selectedName) {
         let allItems = [];
-        // Rimosso menu-contorni da questa lista per l'edit piatto
         ['menu-primi', 'menu-secondi', 'menu-insalatone', 'menu-pizze'].forEach(id => {
             const txt = document.getElementById(id).value;
             txt.split('\n').forEach(line => {
