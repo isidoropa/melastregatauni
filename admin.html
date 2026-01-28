@@ -27,7 +27,6 @@
         h1 { margin-bottom: 20px; }
         h2 { font-size: 1.2em; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px; margin-top: 30px; }
 
-        /* BOX BIANCHI */
         .admin-panel, .menu-section, .card, #login-box, #bill-box, #edit-box {
             background: var(--surface); padding: 25px; border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; border: none; color: #2d3436;
@@ -160,11 +159,23 @@
         <div style="background:#e8f5e9; padding:10px; border-radius:8px; margin-bottom:15px; text-align:center; border:1px solid #c3e6cb;">
             Prezzo Combo: <input type="number" id="price-combo" class="price-input" value="7.00"> €
         </div>
-        <h3>🍝 Primi <input type="number" id="price-primi" class="price-input" value="5">€</h3> <textarea id="menu-primi" rows="2"></textarea>
-        <h3>🍖 Secondi <input type="number" id="price-secondi" class="price-input" value="5">€</h3> <textarea id="menu-secondi" rows="2"></textarea>
-        <h3>🥗 Contorni <input type="number" id="price-contorni" class="price-input" value="3">€</h3> <textarea id="menu-contorni" rows="2"></textarea>
-        <h3 style="color:var(--accent);">🥬 Insalatone <input type="number" id="price-insalatone" class="price-input" value="6">€</h3> <textarea id="menu-insalatone" rows="2"></textarea>
-        <h3>🍕 Pizze <input type="number" id="price-pizze" class="price-input" value="7">€</h3> <textarea id="menu-pizze" rows="2"></textarea>
+        
+        <h3>🍝 Primi <input type="number" id="price-primi" class="price-input" value="5">€</h3> 
+        <textarea id="menu-primi" rows="2"></textarea>
+        
+        <h3>🍖 Secondi <input type="number" id="price-secondi" class="price-input" value="5">€</h3> 
+        <textarea id="menu-secondi" rows="2"></textarea>
+        
+        <h3>🥗 Lista Contorni per Menu a Tendina</h3> 
+        <p style="font-size:0.8em; margin:0; color:#666;">Scrivi un contorno per riga (es. Patatine)</p>
+        <textarea id="menu-lista-contorni" rows="3" placeholder="Patatine&#10;Insalata&#10;Verdure"></textarea>
+        
+        <h3 style="color:var(--accent);">🥬 Insalatone <input type="number" id="price-insalatone" class="price-input" value="6">€</h3> 
+        <textarea id="menu-insalatone" rows="2"></textarea>
+        
+        <h3>🍕 Pizze <input type="number" id="price-pizze" class="price-input" value="7">€</h3> 
+        <textarea id="menu-pizze" rows="2"></textarea>
+        
         <div class="control-box"><input type="checkbox" id="pizze-soldout"> <label for="pizze-soldout">🚫 Pizze ESAURITE</label></div>
         <div class="control-box panic-mode"><input type="checkbox" id="blocca-ordini"> <label for="blocca-ordini">⛔️ BLOCCA ORDINI (Panic)</label></div>
         <button class="btn-success" onclick="salvaMenu()">AGGIORNA MENU</button>
@@ -182,7 +193,7 @@
 </div>
 
 <script>
-   const firebaseConfig = {
+    const firebaseConfig = {
         apiKey: "AIzaSyCJW_sE3dDakc85xCvj73P8DOYdXxD5JDU",
         authDomain: "melastregatauni.firebaseapp.com",
         // Nota: questo URL è importante perché il tuo database è in Europa
@@ -245,14 +256,14 @@
             if(m) {
                 document.getElementById('menu-primi').value = m.primi || "";
                 document.getElementById('menu-secondi').value = m.secondi || "";
-                document.getElementById('menu-contorni').value = m.contorni || "";
+                // NUOVO CAMPO CONTORNI
+                document.getElementById('menu-lista-contorni').value = m.lista_contorni || "";
                 document.getElementById('menu-insalatone').value = m.insalatone || "";
                 document.getElementById('menu-pizze').value = m.pizze || "";
                 document.getElementById('pizze-soldout').checked = m.pizze_esaurite || false;
                 document.getElementById('blocca-ordini').checked = m.blocca_ordini || false;
                 document.getElementById('price-primi').value = m.prezzo_primi || 5;
                 document.getElementById('price-secondi').value = m.prezzo_secondi || 5;
-                document.getElementById('price-contorni').value = m.prezzo_contorni || 3;
                 document.getElementById('price-insalatone').value = m.prezzo_insalatone || 6;
                 document.getElementById('price-pizze').value = m.prezzo_pizze || 7;
                 document.getElementById('price-combo').value = m.prezzo_combo || 7;
@@ -342,7 +353,7 @@
     // --- MODIFICA ORDINE ---
     function getMenuDropdownHTML(selectedName) {
         let allItems = [];
-        // Rimosso menu-contorni
+        // Rimosso menu-contorni da questa lista per l'edit piatto
         ['menu-primi', 'menu-secondi', 'menu-insalatone', 'menu-pizze'].forEach(id => {
             const txt = document.getElementById(id).value;
             txt.split('\n').forEach(line => {
@@ -352,7 +363,6 @@
         });
         allItems.sort();
         let html = ''; let found = false;
-        // Pulizia nome per il match (rimuove "PIZZA: " e parentesi del contorno)
         const cleanSelected = selectedName.replace("PIZZA: ", "").split(" (con")[0].trim();
         
         allItems.forEach(dish => {
@@ -360,7 +370,6 @@
             if(isSelected) found = true;
             html += `<option value="${dish}" ${isSelected ? 'selected' : ''}>${dish}</option>`;
         });
-        // Se non trovato (magari ha un contorno custom), mettilo come option
         if(!found && cleanSelected) html = `<option value="${cleanSelected}" selected>${cleanSelected} (Attuale)</option>` + html;
         return `<select class="edit-item-select" onchange="ricalcolaTotaleModifica()">${html}</select>`;
     }
@@ -427,12 +436,11 @@
     let currentTableData = null;
     function mostraContoTavolo(tavolo) {
         const ordiniTavolo = globalOrdersByTable[tavolo]; if (!ordiniTavolo) return;
-        let riepilogoItems = {}; let totaleRealeTavolo = 0; let totalePersone = 0; // Totale persone
+        let riepilogoItems = {}; let totaleRealeTavolo = 0; let totalePersone = 0;
         
         ordiniTavolo.forEach(ord => {
             totaleRealeTavolo += parseFloat(ord.totale || 0);
-            totalePersone += parseInt(ord.coperti || 0); // Somma persone
-            
+            totalePersone += parseInt(ord.coperti || 0);
             if (ord.items) {
                 ord.items.forEach(item => {
                     const nome = item.nome; const qty = parseInt(item.qty);
@@ -443,7 +451,6 @@
         });
         
         const container = document.getElementById('bill-content'); 
-        // Aggiungi riga totale persone in alto
         container.innerHTML = `<div style="text-align:center; font-weight:bold; color:#555; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">👥 Totale Persone: ${totalePersone}</div>`;
         
         for (const [nome, data] of Object.entries(riepilogoItems)) {
@@ -452,14 +459,12 @@
             container.innerHTML += `<div class="bill-item"><span><strong>${data.qty}x</strong> ${nome.replace("PIZZA: ","")} ${priceStr}</span><span>€ ${lineTotal.toFixed(2)}</span></div>`;
         }
         
-        // Calcolatrice con default al numero di persone
         let htmlDiviso = `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #eee; font-size:0.9em; color:#666; display:flex; align-items:center; gap:10px;"><span>➗ Diviso</span><input type="number" id="split-num" value="${totalePersone > 0 ? totalePersone : 1}" min="1" style="width:50px; padding:5px; text-align:center;" oninput="calcolaDiviso(${totaleRealeTavolo})">persone = <strong id="split-res" style="color:#2c3e50;">€ ${totaleRealeTavolo.toFixed(2)}</strong> a testa</div>`;
         
         document.getElementById('bill-title').innerText = "Conto Tavolo: " + tavolo;
         document.getElementById('bill-total-value').innerText = "€ " + totaleRealeTavolo.toFixed(2);
         container.innerHTML += htmlDiviso;
         
-        // Esegui subito calcolo iniziale
         setTimeout(() => calcolaDiviso(totaleRealeTavolo), 100);
 
         currentTableData = { tavolo, items: riepilogoItems, totale: totaleRealeTavolo, persone: totalePersone };
@@ -510,12 +515,12 @@
         db.ref('menu').update({
             primi: document.getElementById('menu-primi').value,
             secondi: document.getElementById('menu-secondi').value,
-            contorni: document.getElementById('menu-contorni').value,
+            // Lista contorni
+            lista_contorni: document.getElementById('menu-lista-contorni').value,
             insalatone: document.getElementById('menu-insalatone').value,
             pizze: document.getElementById('menu-pizze').value,
             prezzo_primi: parseFloat(document.getElementById('price-primi').value)||5,
             prezzo_secondi: parseFloat(document.getElementById('price-secondi').value)||5,
-            prezzo_contorni: parseFloat(document.getElementById('price-contorni').value)||3,
             prezzo_insalatone: parseFloat(document.getElementById('price-insalatone').value)||6,
             prezzo_pizze: parseFloat(document.getElementById('price-pizze').value)||7,
             prezzo_combo: parseFloat(document.getElementById('price-combo').value)||7,
